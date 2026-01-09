@@ -320,29 +320,41 @@
 
         function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
 
+        // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
         function sendOrder() {
             const fio = document.getElementById('fio').value.trim();
             const phone = document.getElementById('phone').value.trim();
             const delivery = document.getElementById('delivery').value;
-            if (!fio || !phone) { tg.showAlert("Заполните Имя и Телефон!"); return; }
 
-            const total = cart.reduce((s, i) => s + i.price, 0);
+            if (!fio || !phone) {
+                tg.showAlert("Пожалуйста, заполните Имя и Телефон!");
+                return;
+            }
+
+            const total = cart.reduce((sum, item) => sum + item.price, 0);
+
             const orderData = {
-                fio, phone, delivery,
-                items: cart,
-                total: total,
-                date: new Date().toLocaleString()
+                type: 'new_order',
+                data: {
+                    fio: fio,
+                    phone: phone,
+                    delivery: delivery,
+                    items: cart,
+                    total: total,
+                    date: new Date().toLocaleDateString()
+                }
             };
 
-            // СОХРАНЕНИЕ ТОЛЬКО ПРИ ОТПРАВКЕ
+            // Отправляем данные боту
+            tg.sendData(JSON.stringify(orderData));
+
+            // Сохраняем в локальную историю
             let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-            savedOrders.unshift(orderData);
+            savedOrders.unshift(orderData.data);
             localStorage.setItem('my_orders', JSON.stringify(savedOrders));
             
-            tg.sendData(JSON.stringify({ type: 'new_order', data: orderData }));
-            
             tg.showAlert("Заказ успешно отправлен!");
-            cart = []; // Очистка корзины
+            cart = []; 
             renderCart();
             showTab('profile', document.querySelector('.nav-item:last-child'));
         }
@@ -382,6 +394,7 @@
             });
         }
 
+        // Инициализация данных пользователя
         if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
             document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || 'https://via.placeholder.com/100';
