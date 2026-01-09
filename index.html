@@ -102,4 +102,210 @@
         }
         .nav-item {
             display: flex; flex-direction: column; justify-content: center;
-            align-
+            align-items: center; color: var(--tg-theme-hint-color);
+            font-size: 14px; text-decoration: none; flex: 1;
+        }
+        .nav-item.active { color: var(--tg-theme-button-color, #2481cc); }
+
+        .hidden { display: none; }
+        input, select {
+            width: 100%; padding: 12px; margin: 8px 0;
+            border-radius: 10px; border: 1px solid #ddd;
+            background: white; color: black;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="catalog-tab">
+        <h1 class="text-xl font-bold mb-4">mimi4mini</h1>
+        
+        <select class="mb-4 w-full p-3 rounded-lg border" onchange="filterCategory(this.value)">
+            <option value="all">Все категории</option>
+            <option value="платья карнавальные">Платья карнавальные</option>
+            <option value="платья повседневные"> Платья повседневные</option>
+        </select>
+
+        <div class="product-grid" id="product-list">
+            <div class="card product-card" data-category="платья карнавальные">
+                <div class="image-slider">
+                    <img src="elsa1023.jpg">
+                    <img src="elsa1023(2).jpg">
+                </div>
+                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 1023')"><i class="fas fa-heart"></i></button>
+                <div class="p-3 flex-1 flex flex-col">
+                    <h2 class="text-sm font-bold truncate">Эльза 1023</h2>
+                    <span class="price-tag">1500 ₽</span>
+                    
+                    <div class="size-container" id="size-group-1">
+                        <button class="size-btn active" onclick="selectSize(this)">110</button>
+                        <button class="size-btn" onclick="selectSize(this)">120</button>
+                        <button class="size-btn" onclick="selectSize(this)">130</button>
+                    </div>
+
+                    <button class="btn-green" onclick="addWithButtons('Эльза 1023', 1500, 'elsa1023.jpg', 'size-group-1')">В КОРЗИНУ</button>
+                </div>
+            </div>
+
+            <div class="card product-card" data-category="платья карнавальные">
+                <div class="image-slider">
+                    <img src="elsa0425.jpg">
+                    <img src="elsa0425(2).jpg">
+                </div>
+                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 0425')"><i class="fas fa-heart"></i></button>
+                <div class="p-3 flex-1 flex flex-col">
+                    <h2 class="text-sm font-bold truncate">Платье Эльзы</h2>
+                    <span class="price-tag">1500 ₽</span>
+                    
+                    <div class="size-container" id="size-group-2">
+                        <button class="size-btn active" onclick="selectSize(this)">100</button>
+                        <button class="size-btn" onclick="selectSize(this)">110</button>
+                        <button class="size-btn" onclick="selectSize(this)">120</button>
+                        <button class="size-btn" onclick="selectSize(this)">130</button>
+                        <button class="size-btn" onclick="selectSize(this)">140</button>
+                    </div>
+
+                    <button class="btn-green" onclick="addWithButtons('Платье Эльза', 1500, 'elsa0425.jpg', 'size-group-2')">В КОРЗИНУ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="cart-tab" class="container hidden">
+        <h1 class="text-2xl font-bold mb-4">Корзина</h1>
+        <div id="cart-list"></div>
+        <div id="order-form" class="hidden mt-6">
+            <input type="text" id="fio" placeholder="Ваше Имя и Фамилия">
+            <input type="tel" id="phone" placeholder="Номер телефона">
+            <select id="delivery">
+                <option value="СДЭК">СДЭК</option>
+                <option value="5post">5post</option>
+                <option value="Почта России">Почта России</option>
+            </select>
+            <button class="btn-green py-4 text-lg" onclick="sendOrder()">ОФОРМИТЬ ЗАКАЗ</button>
+        </div>
+        <div id="empty-cart-msg" class="text-center opacity-50 py-10">Корзина пуста</div>
+    </div>
+
+    <div id="favorites-tab" class="container hidden">
+        <h1 class="text-2xl font-bold mb-6">Избранное</h1>
+        <div id="favorites-list" class="space-y-2">Тут пока пусто</div>
+    </div>
+
+    <div id="profile-tab" class="container hidden text-center">
+        <img id="user-pic" class="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-green-500" src="">
+        <h2 id="user-name" class="text-xl font-bold mb-1">Пользователь</h2>
+        <button class="w-full bg-blue-500 text-white p-3 rounded-xl mt-4" onclick="tg.openTelegramLink('https://t.me/putunkeeva1998')">ПОДДЕРЖКА</button>
+    </div>
+
+    <nav class="bottom-nav">
+        <a href="javascript:void(0)" class="nav-item active" onclick="showTab('catalog', this)"><i class="fas fa-th-large"></i>Каталог</a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showTab('favorites', this)"><i class="fas fa-heart"></i>Избранное</a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showTab('cart', this)"><i class="fas fa-shopping-basket"></i>Корзина</a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user"></i>Профиль</a>
+    </nav>
+
+    <script>
+        let tg = window.Telegram.WebApp;
+        tg.expand();
+        let cart = [];
+        let favorites = [];
+
+        // Выбор размера
+        function selectSize(btn) {
+            const parent = btn.parentElement;
+            parent.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            tg.HapticFeedback.impactOccurred('light');
+        }
+
+        // Добавление в корзину (из кнопок)
+        function addWithButtons(name, price, img, groupId) {
+            const group = document.getElementById(groupId);
+            const activeBtn = group.querySelector('.size-btn.active');
+            const size = activeBtn ? activeBtn.innerText : 'Не выбран';
+
+            cart.push({ name, price, img, size: 'Размер ' + size });
+            renderCart();
+            tg.HapticFeedback.notificationOccurred('success');
+            tg.showAlert(`${name} (размер ${size}) в корзине!`);
+        }
+
+        function renderCart() {
+            const list = document.getElementById('cart-list');
+            const form = document.getElementById('order-form');
+            const msg = document.getElementById('empty-cart-msg');
+            
+            if (cart.length > 0) {
+                const total = cart.reduce((sum, item) => sum + item.price, 0);
+                list.innerHTML = cart.map((item, idx) => `
+                    <div class="flex items-center p-3 bg-zinc-100 rounded-lg mb-2">
+                        <img src="${item.img}" class="w-12 h-12 object-cover rounded mr-3">
+                        <div class="flex-1">
+                            <b class="text-sm">${item.name}</b><br>
+                            <small class="opacity-60">${item.size}</small>
+                        </div>
+                        <div class="text-green-500 font-bold ml-2">${item.price} ₽</div>
+                        <button onclick="removeItem(${idx})" class="text-red-500 ml-4"><i class="fas fa-times"></i></button>
+                    </div>
+                `).join('');
+                
+                list.innerHTML += `<div class="p-4 mt-4 bg-white border-t-2 border-green-500 font-bold text-right">ИТОГО: ${total} ₽</div>`;
+                form.classList.remove('hidden');
+                msg.classList.add('hidden');
+                form.querySelector('button').innerText = `ОФОРМИТЬ ЗАКАЗ НА ${total} ₽`;
+            } else {
+                list.innerHTML = '';
+                form.classList.add('hidden');
+                msg.classList.remove('hidden');
+            }
+        }
+
+        function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
+
+        function showTab(id, el) {
+            document.querySelectorAll('.container').forEach(t => t.classList.add('hidden'));
+            document.getElementById(id + '-tab').classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function toggleFavorite(btn, name) {
+            btn.classList.toggle('active');
+            if (btn.classList.contains('active')) favorites.push(name);
+            else favorites = favorites.filter(f => f !== name);
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            const list = document.getElementById('favorites-list');
+            list.innerHTML = favorites.length ? favorites.map(f => `<div class="p-3 bg-zinc-100 rounded-lg">${f}</div>`).join('') : 'Тут пока пусто';
+        }
+
+        function sendOrder() {
+            const fio = document.getElementById('fio').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const delivery = document.getElementById('delivery').value;
+            if (!fio || !phone) { tg.showAlert("Заполните Имя и Телефон!"); return; }
+
+            const total = cart.reduce((s, i) => s + i.price, 0);
+            const data = { заказчик: fio, телефон: phone, доставка: delivery, товары: cart, итого: total };
+
+            tg.showConfirm(`Отправить заказ на ${total} ₽?`, (ok) => {
+                if (ok) { tg.sendData(JSON.stringify(data)); tg.close(); }
+            });
+        }
+
+        function filterCategory(cat) {
+            document.querySelectorAll('.product-card').forEach(card => {
+                card.style.display = (cat === 'all' || card.dataset.category === cat) ? 'flex' : 'none';
+            });
+        }
+
+        if (tg.initDataUnsafe.user) {
+            document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
+            document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || '';
+        }
+    </script>
+</body>
+</html>
