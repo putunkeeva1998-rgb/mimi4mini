@@ -8,9 +8,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
+        :root {
+            --pink-main: #ffeff2;
+            --pink-accent: #f8bbd0;
+            --pink-dark: #f06292;
+            --text-dark: #4a4a4a;
+        }
+
         body { 
-            background-color: var(--tg-theme-bg-color, #ffffff); 
-            color: var(--tg-theme-text-color, #000000); 
+            background-color: var(--pink-main); 
+            color: var(--text-dark); 
             font-family: -apple-system, BlinkMacSystemFont, sans-serif; 
             margin: 0; 
             padding-bottom: 90px;
@@ -24,14 +31,14 @@
         }
 
         .card { 
-            background-color: var(--tg-theme-secondary-bg-color, #f4f4f5); 
-            border-radius: 15px; 
+            background-color: #ffffff; 
+            border-radius: 20px; 
             overflow: hidden; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 12px rgba(240, 98, 146, 0.15);
             position: relative;
             display: flex;
             flex-direction: column;
-            height: 100%;
+            border: 1px solid var(--pink-accent);
         }
 
         .image-slider {
@@ -47,9 +54,8 @@
         }
         .image-slider::-webkit-scrollbar { display: none; }
 
-        .price-tag { color: #2ecc71; font-weight: 900; font-size: 1.1rem; }
+        .price-tag { color: var(--pink-dark); font-weight: 900; font-size: 1.1rem; }
         
-        /* Стили кнопок размеров */
         .size-container {
             display: flex;
             flex-wrap: wrap;
@@ -57,73 +63,87 @@
             margin: 8px 0;
         }
         .size-btn {
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            padding: 4px 6px;
+            background: #fff;
+            border: 1px solid var(--pink-accent);
+            border-radius: 8px;
+            padding: 5px;
             font-size: 10px;
             font-weight: bold;
             cursor: pointer;
-            color: black;
+            color: var(--text-dark);
             flex: 1 1 calc(33% - 4px);
             text-align: center;
+            transition: 0.2s;
         }
         .size-btn.active {
-            background-color: #2ecc71 !important;
+            background-color: var(--pink-dark) !important;
             color: white !important;
-            border-color: #2ecc71;
+            border-color: var(--pink-dark);
         }
 
-        .btn-green { 
-            background-color: #2ecc71 !important; 
+        .btn-pink { 
+            background-color: var(--pink-dark) !important; 
             color: white !important; 
             width: 100%; 
-            padding: 10px; 
-            border-radius: 10px; 
+            padding: 12px; 
+            border-radius: 12px; 
             font-weight: bold; 
             margin-top: auto;
             font-size: 0.8rem;
+            border: none;
+            box-shadow: 0 2px 5px rgba(240, 98, 146, 0.3);
         }
 
         .fav-btn { 
-            position: absolute; top: 8px; right: 8px; 
-            background: rgba(255,255,255,0.8); 
-            border-radius: 50%; width: 32px; height: 32px; 
+            position: absolute; top: 10px; right: 10px; 
+            background: rgba(255,255,255,0.9); 
+            border-radius: 50%; width: 34px; height: 34px; 
             display: flex; align-items: center; justify-content: center;
-            color: #ccc; border: none; z-index: 20;
+            color: #ffcdd2; border: none; z-index: 20;
         }
-        .fav-btn.active { color: #e74c3c; }
+        .fav-btn.active { color: var(--pink-dark); }
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
             display: flex; justify-content: space-around;
-            height: 75px; background-color: var(--tg-theme-secondary-bg-color, #f4f4f5);
-            border-top: 1px solid var(--tg-theme-hint-color); z-index: 1000;
+            height: 75px; background-color: #ffffff;
+            border-top: 1px solid var(--pink-accent); z-index: 1000;
         }
         .nav-item {
             display: flex; flex-direction: column; justify-content: center;
-            align-items: center; color: var(--tg-theme-hint-color);
-            font-size: 14px; text-decoration: none; flex: 1;
+            align-items: center; color: #b0bec5;
+            font-size: 12px; text-decoration: none; flex: 1;
         }
-        .nav-item.active { color: var(--tg-theme-button-color, #2481cc); }
+        .nav-item.active { color: var(--pink-dark); }
 
         .hidden { display: none; }
         input, select {
-            width: 100%; padding: 12px; margin: 8px 0;
-            border-radius: 10px; border: 1px solid #ddd;
-            background: white; color: black;
+            width: 100%; padding: 14px; margin: 8px 0;
+            border-radius: 12px; border: 1px solid var(--pink-accent);
+            background: white; color: var(--text-dark); outline: none;
+        }
+        
+        /* Стиль для блока заказов в профиле */
+        .order-history-item {
+            background: white;
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border-left: 4px solid var(--pink-dark);
+            text-align: left;
+            font-size: 0.85rem;
         }
     </style>
 </head>
 <body>
 
     <div class="container" id="catalog-tab">
-        <h1 class="text-xl font-bold mb-4">mimi4mini</h1>
+        <h1 class="text-2xl font-bold mb-4 text-center" style="color: var(--pink-dark)">mimi4mini</h1>
         
-        <select class="mb-4 w-full p-3 rounded-lg border" onchange="filterCategory(this.value)">
+        <select class="mb-4" onchange="filterCategory(this.value)">
             <option value="all">Все категории</option>
             <option value="платья карнавальные">Платья карнавальные</option>
-            <option value="платья повседневные"> Платья повседневные</option>
+            <option value="платья повседневные">Платья повседневные</option>
         </select>
 
         <div class="product-grid" id="product-list">
@@ -132,18 +152,16 @@
                     <img src="elsa1023.jpg">
                     <img src="elsa1023(2).jpg">
                 </div>
-                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 1023')"><i class="fas fa-heart"></i></button>
+                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 1023', 1500, 'elsa1023.jpg')"><i class="fas fa-heart"></i></button>
                 <div class="p-3 flex-1 flex flex-col">
                     <h2 class="text-sm font-bold truncate">Эльза 1023</h2>
                     <span class="price-tag">1500 ₽</span>
-                    
-                    <div class="size-container" id="size-group-1">
+                    <div class="size-container" id="size-1">
                         <button class="size-btn active" onclick="selectSize(this)">110</button>
                         <button class="size-btn" onclick="selectSize(this)">120</button>
                         <button class="size-btn" onclick="selectSize(this)">130</button>
                     </div>
-
-                    <button class="btn-green" onclick="addWithButtons('Эльза 1023', 1500, 'elsa1023.jpg', 'size-group-1')">В КОРЗИНУ</button>
+                    <button class="btn-pink" onclick="addToCart('Эльза 1023', 1500, 'elsa1023.jpg', 'size-1')">В КОРЗИНУ</button>
                 </div>
             </div>
 
@@ -152,27 +170,23 @@
                     <img src="elsa0425.jpg">
                     <img src="elsa0425(2).jpg">
                 </div>
-                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 0425')"><i class="fas fa-heart"></i></button>
+                <button class="fav-btn" onclick="toggleFavorite(this, 'Платье Эльзы', 1500, 'elsa0425.jpg')"><i class="fas fa-heart"></i></button>
                 <div class="p-3 flex-1 flex flex-col">
                     <h2 class="text-sm font-bold truncate">Платье Эльзы</h2>
                     <span class="price-tag">1500 ₽</span>
-                    
-                    <div class="size-container" id="size-group-2">
+                    <div class="size-container" id="size-2">
                         <button class="size-btn active" onclick="selectSize(this)">100</button>
                         <button class="size-btn" onclick="selectSize(this)">110</button>
                         <button class="size-btn" onclick="selectSize(this)">120</button>
-                        <button class="size-btn" onclick="selectSize(this)">130</button>
-                        <button class="size-btn" onclick="selectSize(this)">140</button>
                     </div>
-
-                    <button class="btn-green" onclick="addWithButtons('Платье Эльза', 1500, 'elsa0425.jpg', 'size-group-2')">В КОРЗИНУ</button>
+                    <button class="btn-pink" onclick="addToCart('Платье Эльзы', 1500, 'elsa0425.jpg', 'size-2')">В КОРЗИНУ</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="cart-tab" class="container hidden">
-        <h1 class="text-2xl font-bold mb-4">Корзина</h1>
+        <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Корзина</h1>
         <div id="cart-list"></div>
         <div id="order-form" class="hidden mt-6">
             <input type="text" id="fio" placeholder="Ваше Имя и Фамилия">
@@ -182,36 +196,49 @@
                 <option value="5post">5post</option>
                 <option value="Почта России">Почта России</option>
             </select>
-            <button class="btn-green py-4 text-lg" onclick="sendOrder()">ОФОРМИТЬ ЗАКАЗ</button>
+            <button class="btn-pink py-4 text-lg" onclick="sendOrder()">ОФОРМИТЬ ЗАКАЗ</button>
         </div>
-        <div id="empty-cart-msg" class="text-center opacity-50 py-10">Корзина пуста</div>
+        <div id="empty-cart-msg" class="text-center opacity-50 py-10">В корзине пусто 🌸</div>
     </div>
 
     <div id="favorites-tab" class="container hidden">
-        <h1 class="text-2xl font-bold mb-6">Избранное</h1>
-        <div id="favorites-list" class="space-y-2">Тут пока пусто</div>
+        <h1 class="text-2xl font-bold mb-6" style="color: var(--pink-dark)">Избранное</h1>
+        <div id="favorites-list" class="grid grid-cols-2 gap-3">
+            </div>
     </div>
 
-    <div id="profile-tab" class="container hidden text-center">
-        <img id="user-pic" class="w-24 h-24 rounded-full mx-auto mb-4 border-2 border-green-500" src="">
-        <h2 id="user-name" class="text-xl font-bold mb-1">Пользователь</h2>
-        <button class="w-full bg-blue-500 text-white p-3 rounded-xl mt-4" onclick="tg.openTelegramLink('https://t.me/putunkeeva1998')">ПОДДЕРЖКА</button>
+    <div id="profile-tab" class="container hidden">
+        <div class="text-center mb-6">
+            <img id="user-pic" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-pink-300" src="">
+            <h2 id="user-name" class="text-lg font-bold">Загрузка...</h2>
+        </div>
+        
+        <h3 class="font-bold mb-3 border-b pb-1">Мои заказы</h3>
+        <div id="order-history" class="space-y-2 mb-6">
+            <p class="text-sm opacity-50 text-center">История заказов пуста</p>
+        </div>
+
+        <button class="w-full bg-white text-pink-500 border border-pink-300 p-3 rounded-xl font-bold" onclick="tg.openTelegramLink('https://t.me/putunkeeva1998')">
+            СВЯЗАТЬСЯ С ПОДДЕРЖКОЙ
+        </button>
     </div>
 
     <nav class="bottom-nav">
-        <a href="javascript:void(0)" class="nav-item active" onclick="showTab('catalog', this)"><i class="fas fa-th-large"></i>Каталог</a>
-        <a href="javascript:void(0)" class="nav-item" onclick="showTab('favorites', this)"><i class="fas fa-heart"></i>Избранное</a>
-        <a href="javascript:void(0)" class="nav-item" onclick="showTab('cart', this)"><i class="fas fa-shopping-basket"></i>Корзина</a>
-        <a href="javascript:void(0)" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user"></i>Профиль</a>
+        <a href="javascript:void(0)" class="nav-item active" onclick="showTab('catalog', this)"><i class="fas fa-store mb-1 text-xl"></i>Каталог</a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showTab('favorites', this)"><i class="fas fa-heart mb-1 text-xl"></i>Избранное</a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showTab('cart', this)"><i class="fas fa-shopping-bag mb-1 text-xl"></i>Корзина</a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user-circle mb-1 text-xl"></i>Профиль</a>
     </nav>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
+        tg.MainButton.setParams({ color: '#f06292' });
+
         let cart = [];
         let favorites = [];
+        let orders = JSON.parse(localStorage.getItem('my_orders') || '[]');
 
-        // Выбор размера
         function selectSize(btn) {
             const parent = btn.parentElement;
             parent.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
@@ -219,16 +246,54 @@
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        // Добавление в корзину (из кнопок)
-        function addWithButtons(name, price, img, groupId) {
+        function addToCart(name, price, img, groupId) {
             const group = document.getElementById(groupId);
             const activeBtn = group.querySelector('.size-btn.active');
-            const size = activeBtn ? activeBtn.innerText : 'Не выбран';
+            const size = activeBtn ? activeBtn.innerText : '110';
 
             cart.push({ name, price, img, size: 'Размер ' + size });
-            renderCart();
             tg.HapticFeedback.notificationOccurred('success');
-            tg.showAlert(`${name} (размер ${size}) в корзине!`);
+            renderCart();
+            // Уведомление убрано по просьбе
+        }
+
+        function toggleFavorite(btn, name, price, img) {
+            btn.classList.toggle('active');
+            tg.HapticFeedback.impactOccurred('medium');
+            
+            if (btn.classList.contains('active')) {
+                favorites.push({ name, price, img });
+            } else {
+                favorites = favorites.filter(f => f.name !== name);
+            }
+            renderFavorites();
+        }
+
+        function renderFavorites() {
+            const list = document.getElementById('favorites-list');
+            if (favorites.length === 0) {
+                list.innerHTML = '<p class="col-span-2 text-center opacity-50">Тут пока пусто 🎀</p>';
+                return;
+            }
+            list.innerHTML = favorites.map(f => `
+                <div class="card p-2">
+                    <img src="${f.img}" class="w-full h-32 object-cover rounded-lg mb-2">
+                    <b class="text-xs truncate">${f.name}</b>
+                    <span class="text-pink-500 font-bold text-sm">${f.price} ₽</span>
+                    <button onclick="removeFromFav('${f.name}')" class="text-[10px] mt-2 text-gray-400">Удалить</button>
+                </div>
+            `).join('');
+        }
+
+        function removeFromFav(name) {
+            favorites = favorites.filter(f => f.name !== name);
+            // Снимаем класс active в каталоге
+            document.querySelectorAll('.product-card').forEach(card => {
+                if(card.querySelector('h2').innerText === name) {
+                    card.querySelector('.fav-btn').classList.remove('active');
+                }
+            });
+            renderFavorites();
         }
 
         function renderCart() {
@@ -239,21 +304,19 @@
             if (cart.length > 0) {
                 const total = cart.reduce((sum, item) => sum + item.price, 0);
                 list.innerHTML = cart.map((item, idx) => `
-                    <div class="flex items-center p-3 bg-zinc-100 rounded-lg mb-2">
-                        <img src="${item.img}" class="w-12 h-12 object-cover rounded mr-3">
+                    <div class="flex items-center p-3 bg-white rounded-xl mb-2 border border-pink-100">
+                        <img src="${item.img}" class="w-14 h-14 object-cover rounded-lg mr-3">
                         <div class="flex-1">
                             <b class="text-sm">${item.name}</b><br>
-                            <small class="opacity-60">${item.size}</small>
+                            <small class="text-pink-400">${item.size}</small>
                         </div>
-                        <div class="text-green-500 font-bold ml-2">${item.price} ₽</div>
-                        <button onclick="removeItem(${idx})" class="text-red-500 ml-4"><i class="fas fa-times"></i></button>
+                        <div class="font-bold text-pink-500">${item.price} ₽</div>
+                        <button onclick="removeItem(${idx})" class="ml-3 text-red-300"><i class="fas fa-trash"></i></button>
                     </div>
                 `).join('');
-                
-                list.innerHTML += `<div class="p-4 mt-4 bg-white border-t-2 border-green-500 font-bold text-right">ИТОГО: ${total} ₽</div>`;
                 form.classList.remove('hidden');
                 msg.classList.add('hidden');
-                form.querySelector('button').innerText = `ОФОРМИТЬ ЗАКАЗ НА ${total} ₽`;
+                form.querySelector('button').innerText = `КУПИТЬ ЗА ${total} ₽`;
             } else {
                 list.innerHTML = '';
                 form.classList.add('hidden');
@@ -263,25 +326,6 @@
 
         function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
 
-        function showTab(id, el) {
-            document.querySelectorAll('.container').forEach(t => t.classList.add('hidden'));
-            document.getElementById(id + '-tab').classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            el.classList.add('active');
-        }
-
-        function toggleFavorite(btn, name) {
-            btn.classList.toggle('active');
-            if (btn.classList.contains('active')) favorites.push(name);
-            else favorites = favorites.filter(f => f !== name);
-            renderFavorites();
-        }
-
-        function renderFavorites() {
-            const list = document.getElementById('favorites-list');
-            list.innerHTML = favorites.length ? favorites.map(f => `<div class="p-3 bg-zinc-100 rounded-lg">${f}</div>`).join('') : 'Тут пока пусто';
-        }
-
         function sendOrder() {
             const fio = document.getElementById('fio').value.trim();
             const phone = document.getElementById('phone').value.trim();
@@ -289,11 +333,48 @@
             if (!fio || !phone) { tg.showAlert("Заполните Имя и Телефон!"); return; }
 
             const total = cart.reduce((s, i) => s + i.price, 0);
-            const data = { заказчик: fio, телефон: phone, доставка: delivery, товары: cart, итого: total };
+            const orderData = {
+                fio, phone, delivery,
+                items: cart,
+                total: total,
+                date: new Date().toLocaleDateString()
+            };
 
-            tg.showConfirm(`Отправить заказ на ${total} ₽?`, (ok) => {
-                if (ok) { tg.sendData(JSON.stringify(data)); tg.close(); }
-            });
+            // Сохраняем в историю
+            orders.unshift(orderData);
+            localStorage.setItem('my_orders', JSON.stringify(orders));
+            
+            // Отправляем боту
+            tg.sendData(JSON.stringify({
+                type: 'new_order',
+                data: orderData
+            }));
+            
+            tg.close();
+        }
+
+        function renderOrders() {
+            const container = document.getElementById('order-history');
+            if (orders.length === 0) return;
+            container.innerHTML = orders.map(o => `
+                <div class="order-history-item">
+                    <div class="flex justify-between font-bold mb-1">
+                        <span>Заказ от ${o.date}</span>
+                        <span class="text-pink-500">${o.total} ₽</span>
+                    </div>
+                    <div class="text-[10px] opacity-60">
+                        ${o.items.map(i => i.name + ' (' + i.size + ')').join(', ')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showTab(id, el) {
+            document.querySelectorAll('.container').forEach(t => t.classList.add('hidden'));
+            document.getElementById(id + '-tab').classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            if(id === 'profile') renderOrders();
         }
 
         function filterCategory(cat) {
@@ -304,8 +385,10 @@
 
         if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
-            document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || '';
+            document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || 'https://via.placeholder.com/100';
         }
+        
+        renderOrders();
     </script>
 </body>
 </html>
