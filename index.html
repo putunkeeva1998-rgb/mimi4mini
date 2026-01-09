@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Naran Wear</title>
+    <title>MIMI4MINI</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -123,7 +123,6 @@
             background: white; color: var(--text-dark); outline: none;
         }
         
-        /* Стиль для блока заказов в профиле */
         .order-history-item {
             background: white;
             padding: 12px;
@@ -132,6 +131,7 @@
             border-left: 4px solid var(--pink-dark);
             text-align: left;
             font-size: 0.85rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
     </style>
 </head>
@@ -139,7 +139,6 @@
 
     <div class="container" id="catalog-tab">
         <h1 class="text-2xl font-bold mb-4 text-center" style="color: var(--pink-dark)">mimi4mini</h1>
-        
         <select class="mb-4" onchange="filterCategory(this.value)">
             <option value="all">Все категории</option>
             <option value="платья карнавальные">Платья карнавальные</option>
@@ -157,9 +156,11 @@
                     <h2 class="text-sm font-bold truncate">Эльза 1023</h2>
                     <span class="price-tag">1500 ₽</span>
                     <div class="size-container" id="size-1">
-                        <button class="size-btn active" onclick="selectSize(this)">110</button>
+                        <button class="size-btn active" onclick="selectSize(this)">100</button>
+                        <button class="size-btn" onclick="selectSize(this)">110</button>
                         <button class="size-btn" onclick="selectSize(this)">120</button>
                         <button class="size-btn" onclick="selectSize(this)">130</button>
+                        <button class="size-btn" onclick="selectSize(this)">140</button>
                     </div>
                     <button class="btn-pink" onclick="addToCart('Эльза 1023', 1500, 'elsa1023.jpg', 'size-1')">В КОРЗИНУ</button>
                 </div>
@@ -191,11 +192,14 @@
         <div id="order-form" class="hidden mt-6">
             <input type="text" id="fio" placeholder="Ваше Имя и Фамилия">
             <input type="tel" id="phone" placeholder="Номер телефона">
-            <select id="delivery">
+            <select id="delivery" onchange="toggle5Post(this.value)">
                 <option value="СДЭК">СДЭК</option>
-                <option value="5post">5post</option>
                 <option value="Почта России">Почта России</option>
+                <option value="5post">5post (через карту)</option>
             </select>
+            <button id="btn-5post-map" class="hidden w-full mb-3 bg-orange-100 text-orange-600 p-2 rounded-lg text-xs border border-orange-200" onclick="tg.openLink('https://fivepost.ru/pick-up-points/')">
+                📍 Найти пункт 5post на карте
+            </button>
             <button class="btn-pink py-4 text-lg" onclick="sendOrder()">ОФОРМИТЬ ЗАКАЗ</button>
         </div>
         <div id="empty-cart-msg" class="text-center opacity-50 py-10">В корзине пусто 🌸</div>
@@ -203,21 +207,16 @@
 
     <div id="favorites-tab" class="container hidden">
         <h1 class="text-2xl font-bold mb-6" style="color: var(--pink-dark)">Избранное</h1>
-        <div id="favorites-list" class="grid grid-cols-2 gap-3">
-            </div>
+        <div id="favorites-list" class="grid grid-cols-2 gap-3"></div>
     </div>
 
     <div id="profile-tab" class="container hidden">
         <div class="text-center mb-6">
             <img id="user-pic" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-pink-300" src="">
-            <h2 id="user-name" class="text-lg font-bold">Загрузка...</h2>
+            <h2 id="user-name" class="text-lg font-bold">Пользователь</h2>
         </div>
-        
         <h3 class="font-bold mb-3 border-b pb-1">Мои заказы</h3>
-        <div id="order-history" class="space-y-2 mb-6">
-            <p class="text-sm opacity-50 text-center">История заказов пуста</p>
-        </div>
-
+        <div id="order-history" class="space-y-2 mb-6"></div>
         <button class="w-full bg-white text-pink-500 border border-pink-300 p-3 rounded-xl font-bold" onclick="tg.openTelegramLink('https://t.me/putunkeeva1998')">
             СВЯЗАТЬСЯ С ПОДДЕРЖКОЙ
         </button>
@@ -237,7 +236,6 @@
 
         let cart = [];
         let favorites = [];
-        let orders = JSON.parse(localStorage.getItem('my_orders') || '[]');
 
         function selectSize(btn) {
             const parent = btn.parentElement;
@@ -246,26 +244,26 @@
             tg.HapticFeedback.impactOccurred('light');
         }
 
+        function toggle5Post(val) {
+            const mapBtn = document.getElementById('btn-5post-map');
+            if (val === '5post') mapBtn.classList.remove('hidden');
+            else mapBtn.classList.add('hidden');
+        }
+
         function addToCart(name, price, img, groupId) {
             const group = document.getElementById(groupId);
             const activeBtn = group.querySelector('.size-btn.active');
             const size = activeBtn ? activeBtn.innerText : '110';
-
             cart.push({ name, price, img, size: 'Размер ' + size });
             tg.HapticFeedback.notificationOccurred('success');
             renderCart();
-            // Уведомление убрано по просьбе
         }
 
         function toggleFavorite(btn, name, price, img) {
             btn.classList.toggle('active');
             tg.HapticFeedback.impactOccurred('medium');
-            
-            if (btn.classList.contains('active')) {
-                favorites.push({ name, price, img });
-            } else {
-                favorites = favorites.filter(f => f.name !== name);
-            }
+            if (btn.classList.contains('active')) favorites.push({ name, price, img });
+            else favorites = favorites.filter(f => f.name !== name);
             renderFavorites();
         }
 
@@ -287,11 +285,8 @@
 
         function removeFromFav(name) {
             favorites = favorites.filter(f => f.name !== name);
-            // Снимаем класс active в каталоге
             document.querySelectorAll('.product-card').forEach(card => {
-                if(card.querySelector('h2').innerText === name) {
-                    card.querySelector('.fav-btn').classList.remove('active');
-                }
+                if(card.querySelector('h2').innerText === name) card.querySelector('.fav-btn').classList.remove('active');
             });
             renderFavorites();
         }
@@ -300,7 +295,6 @@
             const list = document.getElementById('cart-list');
             const form = document.getElementById('order-form');
             const msg = document.getElementById('empty-cart-msg');
-            
             if (cart.length > 0) {
                 const total = cart.reduce((sum, item) => sum + item.price, 0);
                 list.innerHTML = cart.map((item, idx) => `
@@ -337,33 +331,38 @@
                 fio, phone, delivery,
                 items: cart,
                 total: total,
-                date: new Date().toLocaleDateString()
+                date: new Date().toLocaleString()
             };
 
-            // Сохраняем в историю
-            orders.unshift(orderData);
-            localStorage.setItem('my_orders', JSON.stringify(orders));
+            // СОХРАНЕНИЕ ТОЛЬКО ПРИ ОТПРАВКЕ
+            let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+            savedOrders.unshift(orderData);
+            localStorage.setItem('my_orders', JSON.stringify(savedOrders));
             
-            // Отправляем боту
-            tg.sendData(JSON.stringify({
-                type: 'new_order',
-                data: orderData
-            }));
+            tg.sendData(JSON.stringify({ type: 'new_order', data: orderData }));
             
-            tg.close();
+            tg.showAlert("Заказ успешно отправлен!");
+            cart = []; // Очистка корзины
+            renderCart();
+            showTab('profile', document.querySelector('.nav-item:last-child'));
         }
 
         function renderOrders() {
             const container = document.getElementById('order-history');
-            if (orders.length === 0) return;
-            container.innerHTML = orders.map(o => `
+            let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+            if (savedOrders.length === 0) {
+                container.innerHTML = '<p class="text-sm opacity-50 text-center">История заказов пуста</p>';
+                return;
+            }
+            container.innerHTML = savedOrders.map(o => `
                 <div class="order-history-item">
                     <div class="flex justify-between font-bold mb-1">
                         <span>Заказ от ${o.date}</span>
                         <span class="text-pink-500">${o.total} ₽</span>
                     </div>
                     <div class="text-[10px] opacity-60">
-                        ${o.items.map(i => i.name + ' (' + i.size + ')').join(', ')}
+                        ${o.items.map(i => i.name + ' (' + i.size + ')').join(', ')}<br>
+                        Доставка: ${o.delivery}
                     </div>
                 </div>
             `).join('');
@@ -387,7 +386,6 @@
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
             document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || 'https://via.placeholder.com/100';
         }
-        
         renderOrders();
     </script>
 </body>
