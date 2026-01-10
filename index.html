@@ -236,22 +236,45 @@
         // --- КАРТА ---
         
         function init2GIS() {
-    if (map) return;
+            if (map) return;
 
-    // 1. СРАЗУ создаем карту (например, на Москве), чтобы экран не был пустым
-    setupMap([37.6175, 55.7558], 12);
+            // 1. Создаем карту
+            setupMap([37.6175, 55.7558], 12);
 
-    // 2. ПОТОМ пытаемся уточнить местоположение пользователя
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition((position) => {
-            const userLat = position.coords.latitude;
-            const userLng = position.coords.longitude;
-            map.setCenter([userLng, userLat]);
-            map.setZoom(14);
-        }, (error) => {
-            console.log("Геопозиция недоступна");
-        });
-    }
+            // 2. Уточняем геолокацию
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+                    map.setCenter([userLng, userLat]);
+                    map.setZoom(14);
+                }, (error) => {
+                    console.log("Геопозиция недоступна");
+                });
+            }
+        }
+        // --- ВОТ ЭТУ ФУНКЦИЮ НУЖНО ВСТАВИТЬ СЮДА ---
+        function setupMap(center, zoom) {
+    map = new mapgl.Map('2gis-map', {
+        center: center,
+        zoom: zoom,
+        key: 'cab82c94-e619-42eb-9814-3361712feaf0'
+    });
+
+    const marker = new mapgl.Marker(map, {
+        coordinates: [0, 0],
+        visible: false
+    });
+
+    map.on('click', (e) => {
+        const feature = e.target;
+        if (feature && feature.properties) {
+            selectedCdekAddress = feature.properties.address || feature.properties.name || "Выбранная точка";
+            marker.setCoordinates(e.lngLat);
+            marker.show();
+            document.getElementById('selected-address-text').innerText = "📍 " + selectedCdekAddress;
+        }
+    });
 }
 
 
@@ -394,10 +417,13 @@
 
     tg.sendData(JSON.stringify(order)); // Отправка данных боту
     tg.showAlert("Заказ успешно отправлен!");
+    
+    // Очищаем корзину и переключаем вкладку ПОСЛЕ отправки
+    cart = []; 
+    renderCart();
+    const profileBtn = document.querySelector('.fa-user-circle').parentElement;
+    showTab('profile', profileBtn);
 }
-            cart = []; renderCart();
-            showTab('profile', document.querySelector('.fa-user-circle').parentElement);
-        }
 
         function renderOrders() {
             const container = document.getElementById('order-history');
