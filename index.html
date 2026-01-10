@@ -393,6 +393,18 @@ function updateQuantity(idx, delta) {
     const deliveryType = document.getElementById('delivery').value;
     const addressInput = document.getElementById('address-input').value.trim();
 
+            // ГЕНЕРАЦИЯ НОМЕРА ЗАКАЗА (Дата + Номер)
+    const now = new Date();
+    const datePart = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\./g, '');
+    let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+    const orderId = `${datePart}-${savedOrders.length + 1}`;
+    
+    // 1. ГЕНЕРАЦИЯ НОМЕРА ЗАКАЗА (Дата + Порядковый номер)
+    const now = new Date();
+    const datePart = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\./g, '');
+    let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+    const orderId = `${datePart}-${savedOrders.length + 1}`;
+            
     const cleanPhone = phone.replace(/\D/g, ""); // Очистка от лишних знаков
 
     // Проверка Имени
@@ -420,6 +432,7 @@ function updateQuantity(idx, delta) {
     const orderData = {
         type: 'new_order',
         data: {
+            orderId: orderId,
             fio: fio,
             phone: phone,
             delivery: finalDelivery,
@@ -431,8 +444,11 @@ function updateQuantity(idx, delta) {
 
     // 3. Эта команда теперь выполнится успешно
     tg.sendData(JSON.stringify(orderData));
+
+    savedOrders.unshift(orderData.data);
+    localStorage.setItem('my_orders', JSON.stringify(savedOrders));
     
-    tg.showAlert("Заказ отправлен!");
+    tg.showAlert(`Заказ №${orderId} успешно отправлен!`);
     // ... очистка корзины ...
 }
     cart = []; 
