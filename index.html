@@ -390,7 +390,8 @@ function updateQuantity(idx, delta) {
         function sendOrder() {
     const fio = document.getElementById('fio').value.trim();
     const phone = document.getElementById('phone').value.trim();
-    const deliveryValue = document.getElementById('delivery').value; // Важно: имя переменной
+    const deliveryType = document.getElementById('delivery').value;
+    const addressInput = document.getElementById('address-input').value.trim();
 
     const cleanPhone = phone.replace(/\D/g, ""); // Очистка от лишних знаков
 
@@ -405,11 +406,14 @@ function updateQuantity(idx, delta) {
         tg.showAlert("Введите корректный номер телефона (например, 8915...)!");
         return;
     }
+            if (deliveryType !== '5post' && addressInput.length < 5) {
+        tg.showAlert("Пожалуйста, введите адрес доставки!");
+        return;
+    }
 
-    // Исправлено: проверяем правильную переменную deliveryValue
-    const finalDelivery = (deliveryValue === 'СДЭК' && typeof selectedCdekAddress !== 'undefined' && selectedCdekAddress) 
+    const finalDelivery = (deliveryType === 'СДЭК' && typeof selectedCdekAddress !== 'undefined' && selectedCdekAddress) 
         ? `СДЭК ПВЗ: ${selectedCdekAddress}` 
-        : deliveryValue;
+        : (deliveryType === '5post' ? '5post' : `${deliveryType}: ${addressInput}`);
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
@@ -425,15 +429,12 @@ function updateQuantity(idx, delta) {
         }
     };
 
-    // Эта команда отправляет данные вашему Python-боту
+    // 3. Эта команда теперь выполнится успешно
     tg.sendData(JSON.stringify(orderData));
-
-    // Сохранение в историю (вкладка Профиль)
-    let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-    savedOrders.unshift(orderData.data);
-    localStorage.setItem('my_orders', JSON.stringify(savedOrders));
     
-    tg.showAlert("Заказ успешно отправлен!");
+    tg.showAlert("Заказ отправлен!");
+    // ... очистка корзины ...
+}
     cart = []; 
     renderCart();
     
