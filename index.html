@@ -374,24 +374,27 @@
 
         // --- ЗАКАЗ ---
         function sendOrder() {
-            const fio = document.getElementById('fio').value;
-            const phone = document.getElementById('phone').value;
-            if (fio.length < 2 || phone.length < 10) return tg.showAlert("Заполните форму!");
-            
-            const order = {
-                type: 'new_order',
-                fio, phone,
-                items: cart,
-                total: cart.reduce((s,i) => s + (i.price*i.quantity), 0),
-                address: selectedCdekAddress,
-                date: new Date().toLocaleDateString()
-            };
-            
-            tg.sendData(JSON.stringify(order));
-            let saved = JSON.parse(localStorage.getItem('my_orders') || '[]');
-            saved.unshift(order);
-            localStorage.setItem('my_orders', JSON.stringify(saved));
-            tg.showAlert("Заказ отправлен!");
+    const fio = document.getElementById('fio').value;
+    const phone = document.getElementById('phone').value;
+    
+    // Проверка: выбран ли адрес?
+    if (!selectedCdekAddress || selectedCdekAddress === "") {
+        return tg.showAlert("Пожалуйста, выберите пункт выдачи на карте!");
+    }
+
+    const order = {
+        type: 'new_order',
+        fio: fio,
+        phone: phone,
+        items: cart,
+        total: cart.reduce((s, i) => s + (i.price * i.quantity), 0),
+        address: selectedCdekAddress, // Вот здесь должен быть ваш текст
+        date: new Date().toLocaleDateString()
+    };
+
+    tg.sendData(JSON.stringify(order)); // Отправка данных боту
+    tg.showAlert("Заказ успешно отправлен!");
+}
             cart = []; renderCart();
             showTab('profile', document.querySelector('.fa-user-circle').parentElement);
         }
