@@ -389,31 +389,33 @@ function updateQuantity(idx, delta) {
 
         // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
         function sendOrder() {
+    // Получаем значения из полей
     const fio = document.getElementById('fio').value.trim();
     const phone = document.getElementById('phone').value.trim();
-    const deliveryValue = document.getElementById('delivery').value; // изменили имя для ясности
+    const deliveryValue = document.getElementById('delivery').value; 
 
-    if (!fio || !phone) {
-        tg.showAlert("Пожалуйста, заполните Имя и Телефон!");
+    // Очистка номера: оставляем только цифры для проверки
+    const cleanPhone = phone.replace(/\D/g, "");
+
+    // 1. Проверка Имени
+    if (fio.length < 2) {
+        tg.showAlert("Пожалуйста, введите корректное Имя!");
         return;
     }
-            // Проверка: номер должен быть длинным (11 цифр) и не состоять из одинаковых цифр
+
+    // 2. Проверка Телефона (ровно 11 цифр и не "пустышка")
+    // Запрещаем ввод типа 00000000000 или 99999999999
     if (cleanPhone.length < 11 || /^(\d)\1+$/.test(cleanPhone)) {
-        tg.showAlert("Введите корректный номер телефона (например, 8915...)!");
-        return;
-    }
-            // Проверка выбора СДЭК
-    if (deliveryValue === 'СДЭК' && !selectedCdekAddress) {
-        tg.showAlert("Пожалуйста, выберите пункт выдачи СДЭК на карте!");
+        tg.showAlert("Введите корректный номер телефона (11 цифр)!");
         return;
     }
 
-    // Правильное формирование адреса (исправлена ошибка в именах переменных)
+    // 3. Формируем итоговый адрес (СДЭК или текст)
     const finalDelivery = (deliveryValue === 'СДЭК' && selectedCdekAddress) 
         ? `СДЭК ПВЗ: ${selectedCdekAddress}` 
         : deliveryValue;
 
-    // Правильный расчет общей суммы с учетом количества
+    // 4. Расчет суммы (учитываем количество товаров)
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const orderData = {
@@ -421,17 +423,17 @@ function updateQuantity(idx, delta) {
         data: {
             fio: fio,
             phone: phone,
-            delivery: finalDelivery, // используем итоговый адрес
+            delivery: finalDelivery,
             items: cart,
             total: total,
             date: new Date().toLocaleDateString()
         }
     };
 
-    // Отправляем данные боту
+    // ОТПРАВКА ДАННЫХ
     tg.sendData(JSON.stringify(orderData));
 
-    // Сохраняем в локальную историю
+    // Сохранение в историю и очистка
     let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
     savedOrders.unshift(orderData.data);
     localStorage.setItem('my_orders', JSON.stringify(savedOrders));
@@ -439,7 +441,8 @@ function updateQuantity(idx, delta) {
     tg.showAlert("Заказ успешно отправлен!");
     cart = []; 
     renderCart();
-    // Переключаем на профиль, находим кнопку профиля правильно
+    
+    // Переход в профиль
     const profileBtn = document.querySelector('.nav-item i.fa-user-circle').parentElement;
     showTab('profile', profileBtn);
 }
