@@ -177,7 +177,7 @@
     statusText.innerText = "⏳ Определение адреса...";
 
     // ВАЖНО: убедитесь, что переменная MY_API_KEY содержит актуальный ключ из личного кабинета
-    const url = `https://catalog.api.2gis.com/3.0/items/geocode?key=${MY_API_KEY}&lat=${lat}&lon=${lng}&fields=items.address_name,items.full_name`;
+    const url = `https://catalog.api.2gis.com/3.0/items/geocode?key=${MY_API_KEY}&lat=${lat}&lon=${lng}&fields=items.address_name`;
 
     fetch(url)
     .then(res => res.json())
