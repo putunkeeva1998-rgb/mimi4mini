@@ -101,9 +101,9 @@
             background: rgba(255,255,255,0.9); 
             border-radius: 50%; width: 34px; height: 34px; 
             display: flex; align-items: center; justify-content: center;
-            color: #ffcdd2; border: none; z-index: 20;
+            color: #ccc; border: none; z-index: 20;
         }
-        .fav-btn.active { color: var(--pink-dark); }
+        .fav-btn.active i { color: var(--pink-dark); }
 
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0;
@@ -149,11 +149,11 @@
 
         <div class="product-grid" id="product-list">
             <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider" onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом. Состав: 100% полиэстер. Подходит для праздников, утренников и фотосессий.')">>
+                <div class="image-slider" onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом. Состав: 100% полиэстер. Подходит для праздников, утренников и фотосессий.')">
                     <img src="elsa1023.jpg">
                     <img src="elsa1023(2).jpg">
                 </div>
-                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 1023', 1500, 'elsa1023.jpg')"><i class="fas fa-heart"></i></button>
+                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 1023', 1500, 'elsa1023.jpg', 'size-1')"><i class="fas fa-heart"></i></button>
                 <div class="p-3 flex-1 flex flex-col">
                     <h2 class="text-sm font-bold truncate">Эльза 1023</h2>
                     <span class="price-tag">1500 ₽</span>
@@ -169,11 +169,11 @@
             </div>
 
             <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider">
+                <div class="image-slider" onclick="openProduct('Эльза 0425', 1500, 'elsa0425.jpg', 'Классическое платье принцессы.')">
                     <img src="elsa0425.jpg">
                     <img src="elsa0425(2).jpg">
                 </div>
-                <button class="fav-btn" onclick="toggleFavorite(this, 'Платье Эльзы', 1500, 'elsa0425.jpg')"><i class="fas fa-heart"></i></button>
+                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 0425', 1500, 'elsa0425.jpg', 'size-2')"><i class="fas fa-heart"></i></button>
                 <div class="p-3 flex-1 flex flex-col">
                     <h2 class="text-sm font-bold truncate">Эльза 0425</h2>
                     <span class="price-tag">1500 ₽</span>
@@ -200,8 +200,8 @@
                 <option value="5post">5post (через карту)</option>
             </select>
             <div id="cdek-map-container" class="hidden w-full h-80 mt-2 rounded-xl overflow-hidden border border-pink-200 shadow-inner">
-    <div id="cdek-map" style="width:100%; height:100%;"></div>
-</div>
+                <div id="cdek-map" style="width:100%; height:100%;"></div>
+            </div>
             <button id="btn-5post-map" class="hidden w-full mb-3 bg-orange-100 text-orange-600 p-2 rounded-lg text-xs border border-orange-200" onclick="tg.openLink('https://fivepost.ru/pick-up-points/')">
                 📍 Найти пункт 5post на карте
             </button>
@@ -234,30 +234,36 @@
         <a href="javascript:void(0)" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user-circle mb-1 text-xl"></i>Профиль</a>
     </nav>
 
+    <div id="product-modal" class="hidden fixed inset-0 bg-black/80 z-[3000] flex items-center justify-center p-4">
+        <div class="bg-white rounded-[30px] w-full max-w-md overflow-hidden relative shadow-2xl">
+            <button onclick="closeProduct()" class="absolute top-4 right-4 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow-lg z-10">✕</button>
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
         tg.MainButton.setParams({ color: '#f06292' });
 
         let cart = [];
-        let favorites = [];
+        let favorites = JSON.parse(localStorage.getItem('my_favorites') || '[]');
 
         let selectedCdekAddress = "";
 
-// Инициализация виджета СДЭК
-const cdekWidjet = new ISDSWIDJET({
-    defaultCity: 'Москва',
-    cityFrom: 'Москва', 
-    link: 'cdek-map', // ID дива, куда вставится карта
-    path: 'https://widget.cdek.ru/widget/scripts/',
-    servicepath: 'https://widget.cdek.ru/widget/scripts/service.php'
-});
+        // Инициализация виджета СДЭК
+        const cdekWidjet = new ISDSWIDJET({
+            defaultCity: 'Москва',
+            cityFrom: 'Москва', 
+            link: 'cdek-map', 
+            path: 'https://widget.cdek.ru/widget/scripts/',
+            servicepath: 'https://widget.cdek.ru/widget/scripts/service.php'
+        });
 
-// Слушаем, какой адрес выбрал пользователь
-cdekWidjet.onChoose(function(info) {
-    selectedCdekAddress = info.address;
-    tg.showAlert("Выбран адрес СДЭК: " + info.address);
-});
+        cdekWidjet.onChoose(function(info) {
+            selectedCdekAddress = info.address;
+            tg.showAlert("Выбран адрес СДЭК: " + info.address);
+        });
 
         function selectSize(btn) {
             const parent = btn.parentElement;
@@ -267,196 +273,160 @@ cdekWidjet.onChoose(function(info) {
         }
 
         function toggleDeliveryMap(val) {
-    const cdekContainer = document.getElementById('cdek-map-container');
-    const btn5Post = document.getElementById('btn-5post-map');
+            const cdekContainer = document.getElementById('cdek-map-container');
+            const btn5Post = document.getElementById('btn-5post-map');
+            cdekContainer.classList.add('hidden');
+            btn5Post.classList.add('hidden');
 
-    cdekContainer.classList.add('hidden');
-    btn5Post.classList.add('hidden');
-
-    if (val === 'СДЭК') {
-        cdekContainer.classList.remove('hidden');
-        // Даем браузеру 100мс на отрисовку блока, затем будим карту
-        setTimeout(() => {
-            if (typeof cdekWidjet !== 'undefined') {
-                cdekWidjet.bindWidget(); 
+            if (val === 'СДЭК') {
+                cdekContainer.classList.remove('hidden');
+                setTimeout(() => { if (typeof cdekWidjet !== 'undefined') cdekWidjet.bindWidget(); }, 100);
+            } else if (val === '5post') {
+                btn5Post.classList.remove('hidden');
             }
-        }, 100);
-    } else if (val === '5post') {
-        btn5Post.classList.remove('hidden');
-    }
-}
-
-        // 1. Измененная функция добавления (теперь учитывает существующие товары)
-        function addToCart(name, price, img, groupId) {
-        const group = document.getElementById(groupId);
-        const activeBtn = group.querySelector('.size-btn.active');
-        const size = activeBtn ? activeBtn.innerText : '100';
-    
-         // Ищем, есть ли уже такой товар с таким же названием и размером
-        const existingItem = cart.find(item => item.name === name && item.size === 'Размер ' + size);
-    
-        if (existingItem) {
-        existingItem.quantity += 1;
-        } else {
-        cart.push({ name, price, img, size: 'Размер ' + size, quantity: 1 });
         }
-    
-        tg.HapticFeedback.notificationOccurred('success');
-        renderCart();
+
+        function addToCart(name, price, img, groupId) {
+            const group = document.getElementById(groupId);
+            const activeBtn = group.querySelector('.size-btn.active');
+            const size = activeBtn ? activeBtn.innerText : '100';
+        
+            const existingItem = cart.find(item => item.name === name && item.size === 'Размер ' + size);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({ name, price, img, size: 'Размер ' + size, quantity: 1 });
+            }
+        
+            tg.HapticFeedback.notificationOccurred('success');
+            renderCart();
         }
         
-        // 2. Новая функция для кнопок + и -
-function updateQuantity(idx, delta) {
-    cart[idx].quantity += delta;
-    if (cart[idx].quantity <= 0) {
-        cart.splice(idx, 1); // Удаляем, если стало 0
-    }
-    renderCart();
-}
+        function updateQuantity(idx, delta) {
+            cart[idx].quantity += delta;
+            if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+            renderCart();
+        }
 
-        function toggleFavorite(btn, name, price, img) {
+        // --- ЛОГИКА ИЗБРАННОГО ---
+        function toggleFavorite(btn, name, price, img, groupId) {
+            const group = document.getElementById(groupId);
+            const size = group.querySelector('.size-btn.active').innerText;
+            
             btn.classList.toggle('active');
             tg.HapticFeedback.impactOccurred('medium');
-            if (btn.classList.contains('active')) favorites.push({ name, price, img });
-            else favorites = favorites.filter(f => f.name !== name);
+
+            const itemIndex = favorites.findIndex(f => f.name === name && f.size === size);
+
+            if (itemIndex === -1) {
+                favorites.push({ name, price, img, size: size });
+                tg.showAlert("Добавлено в избранное с размером " + size);
+            } else {
+                favorites.splice(itemIndex, 1);
+            }
+            
+            localStorage.setItem('my_favorites', JSON.stringify(favorites));
             renderFavorites();
         }
 
         function renderFavorites() {
             const list = document.getElementById('favorites-list');
             if (favorites.length === 0) {
-                list.innerHTML = '<p class="col-span-2 text-center opacity-50">Тут пока пусто 🎀</p>';
+                list.innerHTML = '<p class="col-span-2 text-center opacity-50 py-10">Тут пока пусто 🎀</p>';
                 return;
             }
-            list.innerHTML = favorites.map(f => `
-                <div class="card p-2">
+            list.innerHTML = favorites.map((f, idx) => `
+                <div class="card p-2 relative">
+                    <button class="fav-btn active" onclick="removeFromFav(${idx})"><i class="fas fa-heart"></i></button>
                     <img src="${f.img}" class="w-full h-32 object-cover rounded-lg mb-2">
                     <b class="text-xs truncate">${f.name}</b>
+                    <small class="text-[9px] block text-gray-400">Размер: ${f.size}</small>
                     <span class="text-pink-500 font-bold text-sm">${f.price} ₽</span>
-                    <button onclick="removeFromFav('${f.name}')" class="text-[10px] mt-2 text-gray-400">Удалить</button>
                 </div>
             `).join('');
         }
 
-        function removeFromFav(name) {
-            favorites = favorites.filter(f => f.name !== name);
-            document.querySelectorAll('.product-card').forEach(card => {
-                if(card.querySelector('h2').innerText === name) card.querySelector('.fav-btn').classList.remove('active');
-            });
+        function removeFromFav(idx) {
+            favorites.splice(idx, 1);
+            localStorage.setItem('my_favorites', JSON.stringify(favorites));
             renderFavorites();
+            // Снимаем активность с кнопок в каталоге
+            document.querySelectorAll('.fav-btn').forEach(btn => btn.classList.remove('active'));
         }
 
         function renderCart() {
-    const list = document.getElementById('cart-list');
-    const form = document.getElementById('order-form');
-    const msg = document.getElementById('empty-cart-msg');
-    
-    if (cart.length > 0) {
-        // Считаем общую сумму с учетом количества
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-        
-        list.innerHTML = cart.map((item, idx) => `
-            <div class="flex items-center p-3 bg-white rounded-xl mb-2 border border-pink-100 shadow-sm">
-                <img src="${item.img}" class="w-14 h-14 object-cover rounded-lg mr-3">
-                <div class="flex-1">
-                    <b class="text-sm">${item.name}</b><br>
-                    <small class="text-pink-400">${item.size}</small>
-                    <div class="flex items-center mt-2">
-                        <button onclick="updateQuantity(${idx}, -1)" class="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center">-</button>
-                        <span class="mx-3 text-sm font-bold">${item.quantity}</span>
-                        <button onclick="updateQuantity(${idx}, 1)" class="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center">+</button>
+            const list = document.getElementById('cart-list');
+            const form = document.getElementById('order-form');
+            const msg = document.getElementById('empty-cart-msg');
+            
+            if (cart.length > 0) {
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                list.innerHTML = cart.map((item, idx) => `
+                    <div class="flex items-center p-3 bg-white rounded-xl mb-2 border border-pink-100 shadow-sm">
+                        <img src="${item.img}" class="w-14 h-14 object-cover rounded-lg mr-3">
+                        <div class="flex-1">
+                            <b class="text-sm">${item.name}</b>
+                            <small class="text-pink-400 block">${item.size}</small>
+                            <div class="flex items-center mt-2">
+                                <button onclick="updateQuantity(${idx}, -1)" class="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center">-</button>
+                                <span class="mx-3 text-sm font-bold">${item.quantity}</span>
+                                <button onclick="updateQuantity(${idx}, 1)" class="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center">+</button>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <div class="font-bold text-pink-500">${item.price * item.quantity} ₽</div>
+                            <button onclick="removeItem(${idx})" class="mt-1 text-red-300 text-xs"><i class="fas fa-trash"></i></button>
+                        </div>
                     </div>
-                </div>
-                <div class="text-right">
-                    <div class="font-bold text-pink-500">${item.price * item.quantity} ₽</div>
-                    <button onclick="removeItem(${idx})" class="mt-1 text-red-300 text-xs"><i class="fas fa-trash"></i></button>
-                </div>
-            </div>
-        `).join('');
-        
-        form.classList.remove('hidden');
-        msg.classList.add('hidden');
-        form.querySelector('button').innerText = `КУПИТЬ ЗА ${total} ₽`;
-    } else {
-        list.innerHTML = '';
-        form.classList.add('hidden');
-        msg.classList.remove('hidden');
-    }
-}
+                `).join('');
+                form.classList.remove('hidden');
+                msg.classList.add('hidden');
+                form.querySelector('button').innerText = `КУПИТЬ ЗА ${total} ₽`;
+            } else {
+                list.innerHTML = '';
+                form.classList.add('hidden');
+                msg.classList.remove('hidden');
+            }
+        }
 
         function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
 
-        // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
-       // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
-function sendOrder() {
-    const fio = document.getElementById('fio').value.trim();
-    const phone = document.getElementById('phone').value.trim();
-    const deliveryType = document.getElementById('delivery').value;
-    const addressInput = document.getElementById('address-input').value.trim();
+        // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ (ИСПРАВЛЕНА) ---
+        function sendOrder() {
+            const fio = document.getElementById('fio').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const deliveryType = document.getElementById('delivery').value;
+            const addressInput = document.getElementById('address-input').value.trim();
 
-    // 1. ГЕНЕРАЦИЯ НОМЕРА ЗАКАЗА (Дата + Номер)
-    const now = new Date();
-    const datePart = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\./g, '');
-    let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-    const orderId = `${datePart}-${savedOrders.length + 1}`;
+            const now = new Date();
+            const datePart = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\./g, '');
+            let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+            const orderId = `${datePart}-${savedOrders.length + 1}`;
 
-    const cleanPhone = phone.replace(/\D/g, ""); // Очистка от лишних знаков
+            const cleanPhone = phone.replace(/\D/g, "");
 
-    // 2. ПРОВЕРКА ИМЕНИ
-    if (fio.length < 2) {
-        tg.showAlert("Пожалуйста, введите корректное Имя!");
-        return;
-    }
+            if (fio.length < 2) { tg.showAlert("Введите Имя!"); return; }
+            if (cleanPhone.length < 11 || /^(\d)\1+$/.test(cleanPhone)) { tg.showAlert("Некорректный телефон!"); return; }
+            if (deliveryType !== '5post' && addressInput.length < 5) { tg.showAlert("Введите адрес!"); return; }
 
-    // 3. ПРОВЕРКА ТЕЛЕФОНА (не менее 11 цифр и защита от 000/999)
-    if (cleanPhone.length < 11 || /^(\d)\1+$/.test(cleanPhone)) {
-        tg.showAlert("Введите корректный номер телефона (например, 8915... )!");
-        return;
-    }
+            const finalDelivery = (deliveryType === 'СДЭК' && selectedCdekAddress) ? `СДЭК: ${selectedCdekAddress}` : `${deliveryType}: ${addressInput}`;
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    // Проверка адреса
-    if (deliveryType !== '5post' && addressInput.length < 5) {
-        tg.showAlert("Пожалуйста, введите адрес доставки!");
-        return;
-    }
+            const orderData = {
+                type: 'new_order',
+                data: { orderId, fio, phone, delivery: finalDelivery, items: cart, total, date: now.toLocaleDateString() }
+            };
 
-    // 4. ФОРМИРОВАНИЕ ДАННЫХ ДОСТАВКИ
-    const finalDelivery = (deliveryType === 'СДЭК' && typeof selectedCdekAddress !== 'undefined' && selectedCdekAddress)
-        ? `СДЭК ПВЗ: ${selectedCdekAddress}`
-        : (deliveryType === '5post' ? '5post' : `${deliveryType}: ${addressInput}`);
-
-    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-    // 5. ОБЪЕКТ ЗАКАЗА
-    const orderData = {
-        type: 'new_order',
-        data: {
-            orderId: orderId,
-            fio: fio,
-            phone: phone,
-            delivery: finalDelivery,
-            items: cart,
-            total: total,
-            date: now.toLocaleDateString()
+            tg.sendData(JSON.stringify(orderData));
+            savedOrders.unshift(orderData.data);
+            localStorage.setItem('my_orders', JSON.stringify(savedOrders));
+            
+            tg.showAlert(`Заказ №${orderId} отправлен!`);
+            cart = []; 
+            renderCart();
+            showTab('profile', document.querySelector('.nav-item i.fa-user-circle').parentElement);
         }
-    };
 
-    // 6. ОТПРАВКА И ОЧИСТКА
-    tg.sendData(JSON.stringify(orderData)); // Отправка боту
-
-    savedOrders.unshift(orderData.data);
-    localStorage.setItem('my_orders', JSON.stringify(savedOrders));
-    
-    tg.showAlert(`Заказ №${orderId} успешно отправлен!`);
-    cart = []; 
-    renderCart();
-    showTab('profile', document.querySelector('.nav-item i.fa-user-circle').parentElement);
-}
-    
-    // Автопереход в профиль после заказа
-    const profileBtn = document.querySelector('.nav-item i.fa-user-circle').parentElement;
-    showTab('profile', profileBtn);
-}
         function renderOrders() {
             const container = document.getElementById('order-history');
             let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
@@ -466,12 +436,12 @@ function sendOrder() {
             }
             container.innerHTML = savedOrders.map(o => `
                 <div class="order-history-item">
-                    <div class="flex justify-between font-bold mb-1">
-                        <span>Заказ от ${o.date}</span>
+                    <div class="flex justify-between font-bold mb-1 text-xs">
+                        <span>Заказ №${o.orderId || '---'} от ${o.date}</span>
                         <span class="text-pink-500">${o.total} ₽</span>
                     </div>
                     <div class="text-[10px] opacity-60">
-                        ${o.items.map(i => i.name + ' (' + i.size + ')').join(', ')}<br>
+                        ${o.items.map(i => i.name + ' (' + i.size + ') x' + i.quantity).join(', ')}<br>
                         Доставка: ${o.delivery}
                     </div>
                 </div>
@@ -484,6 +454,7 @@ function sendOrder() {
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
             if(id === 'profile') renderOrders();
+            if(id === 'favorites') renderFavorites();
         }
 
         function filterCategory(cat) {
@@ -492,40 +463,31 @@ function sendOrder() {
             });
         }
 
-        // Инициализация данных пользователя
+        function openProduct(name, price, img, desc) {
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <img src="${img}" class="w-full h-72 object-cover">
+                <div class="p-6">
+                    <h2 class="text-2xl font-bold mb-2">${name}</h2>
+                    <p class="text-pink-500 text-xl font-black mb-4">${price} ₽</p>
+                    <div class="text-gray-600 text-sm leading-relaxed mb-6">${desc}</div>
+                    <button class="btn-pink w-full py-4 rounded-2xl font-bold" onclick="closeProduct()">ПОНЯТНО</button>
+                </div>
+            `;
+            document.getElementById('product-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeProduct() {
+            document.getElementById('product-modal').classList.add('hidden');
+            document.body.style.overflow = 'auto';
+        }
+
         if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
             document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || 'https://via.placeholder.com/100';
         }
         renderOrders();
-        // Функция для открытия окна с данными товара
-function openProduct(name, price, img, desc) {
-    const content = document.getElementById('modal-content');
-    content.innerHTML = `
-        <img src="${img}" class="w-full h-72 object-cover">
-        <div class="p-6">
-            <h2 class="text-2xl font-bold mb-2">${name}</h2>
-            <p class="text-pink-500 text-xl font-black mb-4">${price} ₽</p>
-            <div class="text-gray-600 text-sm leading-relaxed mb-6">${desc}</div>
-            <button class="btn-pink w-full py-4 rounded-2xl font-bold" onclick="closeProduct()">ПОНЯТНО</button>
-        </div>
-    `;
-    document.getElementById('product-modal').classList.remove('hidden');
-}
-
-// Функция для закрытия окна
-function closeProduct() {
-    document.getElementById('product-modal').classList.add('hidden');
-}
     </script>
-
-
-    <div id="product-modal" class="hidden fixed inset-0 bg-black/80 z-[3000] flex items-center justify-center p-4">
-    <div class="bg-white rounded-[30px] w-full max-w-md overflow-hidden relative animate-slide-up">
-        <button onclick="closeProduct()" class="absolute top-4 right-4 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow-lg z-10">✕</button>
-        <div id="modal-content"></div>
-    </div>
-</div>
-    
 </body>
 </html>
