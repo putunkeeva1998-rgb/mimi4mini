@@ -327,28 +327,43 @@
 
         // --- ИЗБРАННОЕ ---
         function toggleFavorite(btn, name, price, img, groupId) {
-            const size = document.getElementById(groupId).querySelector('.size-btn.active').innerText;
-            btn.classList.toggle('active');
-            const idx = favorites.findIndex(f => f.name === name && f.size === size);
-            if (idx === -1) { favorites.push({ name, price, img, size }); } 
-            else { favorites.splice(idx, 1); }
-            localStorage.setItem('my_favorites', JSON.stringify(favorites));
-            tg.HapticFeedback.impactOccurred('medium');
-            renderFavorites();
-        }
+    // 1. Находим, какой размер сейчас выбран (кнопка с классом .active)
+    const size = document.getElementById(groupId).querySelector('.size-btn.active').innerText;
+    
+    btn.classList.toggle('active');
+    
+    // 2. Ищем, есть ли уже такой товар с ТАКИМ ЖЕ размером в избранном
+    const idx = favorites.findIndex(f => f.name === name && f.size === size);
+    
+    if (idx === -1) {
+        // 3. Сохраняем объект, включая поле size
+        favorites.push({ name, price, img, size }); 
+    } else {
+        favorites.splice(idx, 1);
+    }
+    
+    // 4. Записываем в память телефона
+    localStorage.setItem('my_favorites', JSON.stringify(favorites));
+    tg.HapticFeedback.impactOccurred('medium');
+    renderFavorites();
+}
 
         function renderFavorites() {
-            const list = document.getElementById('favorites-list');
-            if (favorites.length === 0) { list.innerHTML = '<p class="col-span-2 text-center opacity-50 py-10">Пусто 🎀</p>'; return; }
-            list.innerHTML = favorites.map((f, idx) => `
-                <div class="card p-2">
-                    <button class="fav-btn active" onclick="removeFromFav(${idx})"><i class="fas fa-heart"></i></button>
-                    <img src="${f.img}" class="w-full h-32 object-cover rounded-lg mb-2">
-                    <b class="text-xs truncate">${f.name}</b>
-                    <span class="text-pink-500 font-bold text-sm">${f.price} ₽</span>
-                </div>
-            `).join('');
-        }
+    const list = document.getElementById('favorites-list');
+    if (favorites.length === 0) { 
+        list.innerHTML = '<p class="col-span-2 text-center opacity-50 py-10">Пусто 🎀</p>'; 
+        return; 
+    }
+    list.innerHTML = favorites.map((f, idx) => `
+        <div class="card p-2">
+            <button class="fav-btn active" onclick="removeFromFav(${idx})"><i class="fas fa-heart"></i></button>
+            <img src="${f.img}" class="w-full h-32 object-cover rounded-lg mb-2">
+            <b class="text-xs truncate">${f.name}</b>
+            <div class="text-[10px] text-pink-400 font-bold">Размер: ${f.size}</div>
+            <span class="text-pink-500 font-bold text-sm">${f.price} ₽</span>
+        </div>
+    `).join('');
+}
 
         function removeFromFav(idx) { favorites.splice(idx, 1); localStorage.setItem('my_favorites', JSON.stringify(favorites)); renderFavorites(); }
 
