@@ -258,7 +258,7 @@
     map = new mapgl.Map('2gis-map', {
         center: center,
         zoom: zoom,
-        key: 'cab82c94-e619-42eb-9814-3361712feaf0'
+        key: 'cab82c94-e619-42eb-9814-3361712feaf0' // Ваш ключ
     });
 
     const marker = new mapgl.Marker(map, {
@@ -267,12 +267,34 @@
     });
 
     map.on('click', (e) => {
-        const feature = e.target;
-        if (feature && feature.properties) {
-            selectedCdekAddress = feature.properties.address || feature.properties.name || "Выбранная точка";
+        const target = e.target;
+
+        // 1. Проверяем, кликнул ли пользователь именно на иконку организации (СДЭК, Почта и т.д.)
+        if (target && target.type === 'poi') {
+            const name = target.properties.name || "";
+            const address = target.properties.address_name || "";
+            
+            // Сохраняем название и адрес
+            selectedCdekAddress = `${name} (${address})`;
+            
             marker.setCoordinates(e.lngLat);
             marker.show();
             document.getElementById('selected-address-text').innerText = "📍 " + selectedCdekAddress;
+            tg.HapticFeedback.impactOccurred('medium');
+        } 
+        // 2. Если кликнули просто на здание
+        else if (target && (target.type === 'building' || target.type === 'model')) {
+            const buildingAddress = target.properties.address_name || "Здание без адреса";
+            selectedCdekAddress = "Доставка по адресу: " + buildingAddress;
+            
+            marker.setCoordinates(e.lngLat);
+            marker.show();
+            document.getElementById('selected-address-text').innerText = "📍 " + selectedCdekAddress;
+        }
+        else {
+            // Если кликнули в пустое место
+            selectedCdekAddress = "";
+            document.getElementById('selected-address-text').innerText = "❌ Нажмите точнее на иконку ПВЗ или здание";
         }
     });
 }
