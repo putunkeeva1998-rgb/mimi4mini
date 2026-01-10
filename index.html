@@ -149,7 +149,7 @@
 
         <div class="product-grid" id="product-list">
             <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider">
+                <div class="image-slider"onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом. Состав: 100% полиэстер. Подходит для праздников, утренников и фотосессий.')">>
                     <img src="elsa1023.jpg">
                     <img src="elsa1023(2).jpg">
                 </div>
@@ -499,7 +499,27 @@ function updateQuantity(idx, delta) {
             document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || 'https://via.placeholder.com/100';
         }
         renderOrders();
+        // Функция для открытия окна с данными товара
+function openProduct(name, price, img, desc) {
+    const content = document.getElementById('modal-content');
+    content.innerHTML = `
+        <img src="${img}" class="w-full h-72 object-cover">
+        <div class="p-6">
+            <h2 class="text-2xl font-bold mb-2">${name}</h2>
+            <p class="text-pink-500 text-xl font-black mb-4">${price} ₽</p>
+            <div class="text-gray-600 text-sm leading-relaxed mb-6">${desc}</div>
+            <button class="btn-pink w-full py-4 rounded-2xl font-bold" onclick="closeProduct()">ПОНЯТНО</button>
+        </div>
+    `;
+    document.getElementById('product-modal').classList.remove('hidden');
+}
+
+// Функция для закрытия окна
+function closeProduct() {
+    document.getElementById('product-modal').classList.add('hidden');
+}
     </script>
+
 
     <div id="product-modal" class="hidden fixed inset-0 bg-black/80 z-[3000] flex items-center justify-center p-4">
     <div class="bg-white rounded-[30px] w-full max-w-md overflow-hidden relative animate-slide-up">
