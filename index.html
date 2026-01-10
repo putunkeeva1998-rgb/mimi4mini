@@ -270,16 +270,18 @@ cdekWidjet.onChoose(function(info) {
     const cdekContainer = document.getElementById('cdek-map-container');
     const btn5Post = document.getElementById('btn-5post-map');
 
-    // Сначала скрываем оба спец-блока
+    // Скрываем всё перед выбором
     cdekContainer.classList.add('hidden');
     btn5Post.classList.add('hidden');
 
     if (val === 'СДЭК') {
         cdekContainer.classList.remove('hidden');
-        // ВАЖНО: Команда виджету СДЭК отобразиться в открытом блоке
-        if (typeof cdekWidjet !== 'undefined') {
-            cdekWidjet.bindWidget(); 
-        }
+        // ПРИНУДИТЕЛЬНАЯ ОТРИСОВКА
+        setTimeout(() => {
+            if (typeof cdekWidjet !== 'undefined') {
+                cdekWidjet.bindWidget(); // Привязываем виджет к видимому блоку
+            }
+        }, 100); 
     } else if (val === '5post') {
         btn5Post.classList.remove('hidden');
     }
@@ -393,6 +395,16 @@ function updateQuantity(idx, delta) {
 
     if (!fio || !phone) {
         tg.showAlert("Пожалуйста, заполните Имя и Телефон!");
+        return;
+    }
+            // Проверка: номер должен быть длинным (11 цифр) и не состоять из одинаковых цифр
+    if (cleanPhone.length < 11 || /^(\d)\1+$/.test(cleanPhone)) {
+        tg.showAlert("Введите корректный номер телефона (например, 8915...)!");
+        return;
+    }
+            // Проверка выбора СДЭК
+    if (deliveryValue === 'СДЭК' && !selectedCdekAddress) {
+        tg.showAlert("Пожалуйста, выберите пункт выдачи СДЭК на карте!");
         return;
     }
 
