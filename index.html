@@ -7,6 +7,8 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
+    <script id="ISDS_ID" type="text/javascript" src="https://widget.cdek.ru/widget/widjet.js" charset="utf-8"></script>
     <style>
         :root {
             --pink-main: #ffeff2;
@@ -192,11 +194,14 @@
         <div id="order-form" class="hidden mt-6">
             <input type="text" id="fio" placeholder="Ваше Имя и Фамилия">
             <input type="tel" id="phone" placeholder="Номер телефона">
-            <select id="delivery" onchange="toggle5Post(this.value)">
+            <select id="delivery" onchange="toggleDeliveryMap(this.value)">
                 <option value="СДЭК">СДЭК</option>
                 <option value="Почта России">Почта России</option>
                 <option value="5post">5post (через карту)</option>
             </select>
+            <div id="cdek-map-container" class="hidden w-full h-80 mt-2 rounded-xl overflow-hidden border border-pink-200 shadow-inner">
+    <div id="cdek-map" style="width:100%; height:100%;"></div>
+</div>
             <button id="btn-5post-map" class="hidden w-full mb-3 bg-orange-100 text-orange-600 p-2 rounded-lg text-xs border border-orange-200" onclick="tg.openLink('https://fivepost.ru/pick-up-points/')">
                 📍 Найти пункт 5post на карте
             </button>
@@ -237,6 +242,23 @@
         let cart = [];
         let favorites = [];
 
+        let selectedCdekAddress = "";
+
+// Инициализация виджета СДЭК
+const cdekWidjet = new ISDSWIDJET({
+    defaultCity: 'Москва',
+    cityFrom: 'Москва', 
+    link: 'cdek-map', // ID дива, куда вставится карта
+    path: 'https://widget.cdek.ru/widget/scripts/',
+    servicepath: 'https://widget.cdek.ru/widget/scripts/service.php'
+});
+
+// Слушаем, какой адрес выбрал пользователь
+cdekWidjet.onChoose(function(info) {
+    selectedCdekAddress = info.address;
+    tg.showAlert("Выбран адрес СДЭК: " + info.address);
+});
+
         function selectSize(btn) {
             const parent = btn.parentElement;
             parent.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
@@ -244,11 +266,24 @@
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        function toggle5Post(val) {
-            const mapBtn = document.getElementById('btn-5post-map');
-            if (val === '5post') mapBtn.classList.remove('hidden');
-            else mapBtn.classList.add('hidden');
-        }
+        function toggleDeliveryMap(val) {
+        const cdekContainer = document.getElementById('cdek-map-container');
+        const btn5Post = document.getElementById('btn-5post-map');
+
+    // Логика для СДЭК
+    if (val === 'СДЭК') {
+        cdekContainer.classList.remove('hidden');
+    } else {
+        cdekContainer.classList.add('hidden');
+    }
+
+    // Логика для 5Post
+    if (val === '5post') {
+        btn5Post.classList.remove('hidden');
+    } else {
+        btn5Post.classList.add('hidden');
+    }
+}
 
         // 1. Измененная функция добавления (теперь учитывает существующие товары)
         function addToCart(name, price, img, groupId) {
@@ -352,42 +387,50 @@ function updateQuantity(idx, delta) {
 
         // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
         function sendOrder() {
-            const fio = document.getElementById('fio').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const delivery = document.getElementById('delivery').value;
+    const fio = document.getElementById('fio').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const deliveryValue = document.getElementById('delivery').value; // изменили имя для ясности
 
-            if (!fio || !phone) {
-                tg.showAlert("Пожалуйста, заполните Имя и Телефон!");
-                return;
-            }
+    if (!fio || !phone) {
+        tg.showAlert("Пожалуйста, заполните Имя и Телефон!");
+        return;
+    }
 
-            const total = cart.reduce((sum, item) => sum + item.price, 0);
+    // Правильное формирование адреса (исправлена ошибка в именах переменных)
+    const finalDelivery = (deliveryValue === 'СДЭК' && selectedCdekAddress) 
+        ? `СДЭК ПВЗ: ${selectedCdekAddress}` 
+        : deliveryValue;
 
-            const orderData = {
-                type: 'new_order',
-                data: {
-                    fio: fio,
-                    phone: phone,
-                    delivery: delivery,
-                    items: cart,
-                    total: total,
-                    date: new Date().toLocaleDateString()
-                }
-            };
+    // Правильный расчет общей суммы с учетом количества
+    const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-            // Отправляем данные боту
-            tg.sendData(JSON.stringify(orderData));
-
-            // Сохраняем в локальную историю
-            let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-            savedOrders.unshift(orderData.data);
-            localStorage.setItem('my_orders', JSON.stringify(savedOrders));
-            
-            tg.showAlert("Заказ успешно отправлен!");
-            cart = []; 
-            renderCart();
-            showTab('profile', document.querySelector('.nav-item:last-child'));
+    const orderData = {
+        type: 'new_order',
+        data: {
+            fio: fio,
+            phone: phone,
+            delivery: finalDelivery, // используем итоговый адрес
+            items: cart,
+            total: total,
+            date: new Date().toLocaleDateString()
         }
+    };
+
+    // Отправляем данные боту
+    tg.sendData(JSON.stringify(orderData));
+
+    // Сохраняем в локальную историю
+    let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+    savedOrders.unshift(orderData.data);
+    localStorage.setItem('my_orders', JSON.stringify(savedOrders));
+    
+    tg.showAlert("Заказ успешно отправлен!");
+    cart = []; 
+    renderCart();
+    // Переключаем на профиль, находим кнопку профиля правильно
+    const profileBtn = document.querySelector('.nav-item i.fa-user-circle').parentElement;
+    showTab('profile', profileBtn);
+}
 
         function renderOrders() {
             const container = document.getElementById('order-history');
