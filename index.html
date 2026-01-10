@@ -258,7 +258,7 @@
     map = new mapgl.Map('2gis-map', {
         center: center,
         zoom: zoom,
-        key: 'cab82c94-e619-42eb-9814-3361712feaf0' // Ваш ключ
+        key: 'cab82c94-e619-42eb-9814-3361712feaf0'
     });
 
     const marker = new mapgl.Marker(map, {
@@ -267,34 +267,37 @@
     });
 
     map.on('click', (e) => {
+        // Получаем объект, на который кликнули
         const target = e.target;
+        let address = "";
 
-        // 1. Проверяем, кликнул ли пользователь именно на иконку организации (СДЭК, Почта и т.д.)
-        if (target && target.type === 'poi') {
-            const name = target.properties.name || "";
-            const address = target.properties.address_name || "";
-            
-            // Сохраняем название и адрес
-            selectedCdekAddress = `${name} (${address})`;
-            
-            marker.setCoordinates(e.lngLat);
-            marker.show();
-            document.getElementById('selected-address-text').innerText = "📍 " + selectedCdekAddress;
-            tg.HapticFeedback.impactOccurred('medium');
+        // 1. Проверяем, есть ли у объекта адрес (для зданий и организаций)
+        if (target && target.properties && target.properties.address_name) {
+            address = target.properties.address_name;
+            // Если это организация (например, СДЭК), добавим её название
+            if (target.properties.name) {
+                address = target.properties.name + " (" + address + ")";
+            }
         } 
-        // 2. Если кликнули просто на здание
-        else if (target && (target.type === 'building' || target.type === 'model')) {
-            const buildingAddress = target.properties.address_name || "Здание без адреса";
-            selectedCdekAddress = "Доставка по адресу: " + buildingAddress;
-            
-            marker.setCoordinates(e.lngLat);
-            marker.show();
-            document.getElementById('selected-address-text').innerText = "📍 " + selectedCdekAddress;
-        }
+        // 2. Если адрес в свойствах не найден, используем координаты (как запасной вариант)
         else {
-            // Если кликнули в пустое место
-            selectedCdekAddress = "";
-            document.getElementById('selected-address-text').innerText = "❌ Нажмите точнее на иконку ПВЗ или здание";
+            address = "Координаты: " + e.lngLat[1].toFixed(5) + ", " + e.lngLat[0].toFixed(5);
+        }
+
+        // Записываем адрес в переменную для заказа
+        selectedCdekAddress = address;
+
+        // Ставим маркер и обновляем текст на экране
+        marker.setCoordinates(e.lngLat);
+        marker.show();
+        
+        const addressTextElement = document.getElementById('selected-address-text');
+        addressTextElement.innerText = "📍 " + selectedCdekAddress;
+        addressTextElement.style.color = "#f06292"; // Делаем текст розовым при успехе
+
+        // Легкая вибрация для подтверждения клика
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
         }
     });
 }
