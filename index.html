@@ -267,17 +267,19 @@ cdekWidjet.onChoose(function(info) {
         }
 
         function toggleDeliveryMap(val) {
-        const cdekContainer = document.getElementById('cdek-map-container');
-        const btn5Post = document.getElementById('btn-5post-map');
+    const cdekContainer = document.getElementById('cdek-map-container');
+    const btn5Post = document.getElementById('btn-5post-map');
 
-    // Логика для СДЭК
     if (val === 'СДЭК') {
         cdekContainer.classList.remove('hidden');
+        // Принудительная отрисовка виджета при показе контейнера
+        if (typeof cdekWidjet !== 'undefined') {
+            cdekWidjet.bindWidget(); // Перепривязка к элементу
+        }
     } else {
         cdekContainer.classList.add('hidden');
     }
 
-    // Логика для 5Post
     if (val === '5post') {
         btn5Post.classList.remove('hidden');
     } else {
