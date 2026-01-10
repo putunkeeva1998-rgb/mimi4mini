@@ -393,40 +393,52 @@
 
         // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ (ИСПРАВЛЕНА) ---
         function sendOrder() {
-            const fio = document.getElementById('fio').value.trim();
-            const phone = document.getElementById('phone').value.trim();
-            const deliveryType = document.getElementById('delivery').value;
-            const addressInput = document.getElementById('address-input').value.trim();
-
-            const now = new Date();
-            const datePart = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\./g, '');
-            let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-            const orderId = `${datePart}-${savedOrders.length + 1}`;
-
-            const cleanPhone = phone.replace(/\D/g, "");
-
-            if (fio.length < 2) { tg.showAlert("Введите Имя!"); return; }
-            if (cleanPhone.length < 11 || /^(\d)\1+$/.test(cleanPhone)) { tg.showAlert("Некорректный телефон!"); return; }
-            if (deliveryType !== '5post' && addressInput.length < 5) { tg.showAlert("Введите адрес!"); return; }
-
-            const finalDelivery = (deliveryType === 'СДЭК' && selectedCdekAddress) ? `СДЭК: ${selectedCdekAddress}` : `${deliveryType}: ${addressInput}`;
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-
-            const orderData = {
-                type: 'new_order',
-                data: { orderId, fio, phone, delivery: finalDelivery, items: cart, total, date: now.toLocaleDateString() }
-            };
-
-            tg.sendData(JSON.stringify(orderData));
-            savedOrders.unshift(orderData.data);
-            localStorage.setItem('my_orders', JSON.stringify(savedOrders));
-            
-            tg.showAlert(`Заказ №${orderId} отправлен!`);
-            cart = []; 
-            renderCart();
-            showTab('profile', document.querySelector('.nav-item i.fa-user-circle').parentElement);
+    try {
+        const fioEl = document.getElementById('fio');
+        const phoneEl = document.getElementById('phone');
+        
+        if (!fioEl || !phoneEl) {
+            console.error("Поля ввода не найдены! Проверьте id='fio' и id='phone'");
+            return;
         }
 
+        const fio = fioEl.value.trim();
+        const phone = phoneEl.value.trim();
+
+        if (fio.length < 2 || phone.length < 10) {
+            tg.showAlert("Пожалуйста, заполните Имя и номер телефона!");
+            return;
+        }
+
+        const now = new Date();
+        const datePart = now.toLocaleDateString('ru-RU').replace(/\./g, '');
+        const orderId = `${datePart}-${Math.floor(Math.random() * 1000)}`;
+
+        const orderData = {
+            type: 'new_order',
+            data: {
+                orderId: orderId,
+                fio: fio,
+                phone: phone,
+                items: cart,
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                date: now.toLocaleDateString()
+            }
+        };
+
+        tg.sendData(JSON.stringify(orderData));
+        tg.showAlert("Заказ №" + orderId + " отправлен!");
+        
+        // Очистка
+        cart = [];
+        renderCart();
+        showTab('catalog', document.querySelector('.nav-item')); 
+        
+    } catch (error) {
+        console.error("Ошибка при отправке заказа:", error);
+        alert("Произошла ошибка. Проверьте консоль.");
+    }
+}
         function renderOrders() {
             const container = document.getElementById('order-history');
             let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
