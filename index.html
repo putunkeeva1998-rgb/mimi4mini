@@ -29,7 +29,14 @@
         .nav-item.active { color: var(--pink-dark); }
         .hidden { display: none; }
         input, select { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid var(--pink-accent); background: white; color: var(--text-dark); outline: none; }
-        #2gis-map { width: 100%; height: 300px; z-index: 1; position: relative; }
+        #2gis-map {
+    width: 100%;
+    height: 300px;
+    background-color: #f0f0f0; /* Серый фон, пока карта грузится */
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
     </style>
 </head>
 <body>
@@ -140,29 +147,68 @@
         const MY_API_KEY = 'cab82c94-e619-42eb-9814-3361712feaf0';
 
         function init2GIS() {
-            if (map) return;
-            map = new mapgl.Map('2gis-map', { center: [37.6175, 55.7558], zoom: 12, key: MY_API_KEY });
-            const marker = new mapgl.Marker(map, { coordinates: [0, 0], visible: false });
-            map.on('click', (e) => {
-                const { lng, lat } = e.lngLat;
-                marker.setCoordinates(e.lngLat); marker.show();
-                fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=${MY_API_KEY}`)
-                    .then(res => res.json()).then(data => {
-                        if (data.result?.items.length > 0) {
-                            selectedCdekAddress = data.result.items[0].address_name || data.result.items[0].full_name;
-                            document.getElementById('selected-address-text').innerText = "📍 " + selectedCdekAddress;
-                        }
-                    });
-            });
-        }
+    // Проверяем, загружена ли библиотека 2ГИС
+    if (typeof mapgl === 'undefined') {
+        console.error('Библиотека 2ГИС не загружена. Проверьте интернет или ссылку на скрипт.');
+        return;
+    }
 
-        function toggleDeliveryMap(val) {
-            const container = document.getElementById('cdek-map-container');
-            if (val === "СДЭК") {
-                container.classList.remove('hidden');
-                setTimeout(() => { if (!map) init2GIS(); else map.invalidateSize(); }, 200);
-            } else { container.classList.add('hidden'); }
-        }
+    if (map) return; // Если карта уже есть, не создаем вторую
+
+    try {
+        map = new mapgl.Map('2gis-map', {
+            center: [37.6175, 55.7558],
+            zoom: 12,
+            key: MY_API_KEY,
+            zoomControl: false // Убираем лишние кнопки для чистоты интерфейса
+        });
+
+        const marker = new mapgl.Marker(map, {
+            coordinates: [0, 0],
+            visible: false
+        });
+
+        map.on('click', (e) => {
+            const { lng, lat } = e.lngLat;
+            marker.setCoordinates(e.lngLat);
+            marker.show();
+            document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
+
+            fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=${MY_API_KEY}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.result && data.result.items.length > 0) {
+                        let addr = data.result.items[0].address_name || data.result.items[0].full_name;
+                        selectedCdekAddress = addr;
+                        document.getElementById('selected-address-text').innerText = "📍 " + addr;
+                    }
+                });
+        });
+
+        // Сразу после создания "пинаем" карту, чтобы она отрисовалась
+        setTimeout(() => { map.invalidateSize(); }, 300);
+
+    } catch (err) {
+        console.error('Ошибка при создании карты:', err);
+    }
+}
+
+function toggleDeliveryMap(val) {
+    const container = document.getElementById('cdek-map-container');
+    if (val === "СДЭК") {
+        container.classList.remove('hidden');
+        // Даем браузеру время показать блок, прежде чем рисовать карту
+        setTimeout(() => {
+            if (!map) {
+                init2GIS();
+            } else {
+                map.invalidateSize();
+            }
+        }, 300);
+    } else {
+        container.classList.add('hidden');
+    }
+}
 
         function showTab(id, el) {
             document.querySelectorAll('.container').forEach(t => t.classList.add('hidden'));
