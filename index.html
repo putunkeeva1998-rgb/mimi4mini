@@ -234,21 +234,26 @@
         let map;
 
         // --- КАРТА ---
+        // --- КАРТА ---
         function init2GIS() {
-            if (map) return;
-            map = new mapgl.Map('2gis-map', {
-                center: [37.6175, 55.7558],
-                zoom: 12,
-                key: 'cab82c94-e619-42eb-9814-3361712feaf0'
-            });
-            const marker = new mapgl.Marker(map, { coordinates: [0,0], visible: false });
-            map.on('click', (e) => {
-                marker.setCoordinates(e.lngLat);
-                marker.show();
-                selectedCdekAddress = `Координаты: ${e.lngLat[1].toFixed(5)}, ${e.lngLat[0].toFixed(5)}`;
-                document.getElementById('selected-address-text').innerText = "📍 Адрес выбран!";
-            });
-        }
+    if (map) return;
+
+    // 1. СРАЗУ создаем карту (например, на Москве), чтобы экран не был пустым
+    setupMap([37.6175, 55.7558], 12);
+
+    // 2. ПОТОМ пытаемся уточнить местоположение пользователя
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition((position) => {
+            const userLat = position.coords.latitude;
+            const userLng = position.coords.longitude;
+            map.setCenter([userLng, userLat]);
+            map.setZoom(14);
+        }, (error) => {
+            console.log("Геопозиция недоступна");
+        });
+    }
+}
+
 
         function toggleDeliveryMap(val) {
             const container = document.getElementById('cdek-map-container');
