@@ -267,37 +267,38 @@
     });
 
     map.on('click', (e) => {
-        // Получаем объект, на который кликнули
         const target = e.target;
         let address = "";
 
-        // 1. Проверяем, есть ли у объекта адрес (для зданий и организаций)
-        if (target && target.properties && target.properties.address_name) {
-            address = target.properties.address_name;
-            // Если это организация (например, СДЭК), добавим её название
-            if (target.properties.name) {
-                address = target.properties.name + " (" + address + ")";
+        // Проверяем все возможные поля адреса в объекте 2ГИС
+        if (target && target.properties) {
+            const props = target.properties;
+            
+            // Пытаемся достать адрес из разных полей
+            address = props.address_name || props.full_name || props.address || "";
+            
+            // Если это организация (СДЭК/Почта), добавляем название к адресу
+            if (props.name && props.name !== address) {
+                address = props.name + " (" + address + ")";
             }
-        } 
-        // 2. Если адрес в свойствах не найден, используем координаты (как запасной вариант)
-        else {
-            address = "Координаты: " + e.lngLat[1].toFixed(5) + ", " + e.lngLat[0].toFixed(5);
         }
 
-        // Записываем адрес в переменную для заказа
-        selectedCdekAddress = address;
+        // Если 2ГИС всё равно не отдал текст, запрашиваем его по координатам
+        if (!address || address === "") {
+            // Выводим хотя бы координаты, но просим нажать точнее
+            address = "Точка: " + e.lngLat[1].toFixed(5) + ", " + e.lngLat[0].toFixed(5) + " (Нажмите точнее на здание)";
+        }
 
-        // Ставим маркер и обновляем текст на экране
+        selectedCdekAddress = address;
         marker.setCoordinates(e.lngLat);
         marker.show();
         
-        const addressTextElement = document.getElementById('selected-address-text');
-        addressTextElement.innerText = "📍 " + selectedCdekAddress;
-        addressTextElement.style.color = "#f06292"; // Делаем текст розовым при успехе
-
-        // Легкая вибрация для подтверждения клика
+        const label = document.getElementById('selected-address-text');
+        label.innerText = "📍 " + selectedCdekAddress;
+        label.style.color = "#f06292";
+        
         if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
         }
     });
 }
