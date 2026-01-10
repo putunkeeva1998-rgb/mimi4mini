@@ -94,6 +94,7 @@
             font-size: 0.8rem;
             border: none;
             box-shadow: 0 2px 5px rgba(240, 98, 146, 0.3);
+            cursor: pointer;
         }
 
         .fav-btn { 
@@ -109,7 +110,7 @@
             position: fixed; bottom: 0; left: 0; right: 0;
             display: flex; justify-content: space-around;
             height: 75px; background-color: #ffffff;
-            border-top: 1px solid var(--pink-accent); z-index: 1000;
+            border-top: 1px solid var(--pink-accent); z-index: 2000;
         }
         .nav-item {
             display: flex; flex-direction: column; justify-content: center;
@@ -123,6 +124,9 @@
             width: 100%; padding: 14px; margin: 8px 0;
             border-radius: 12px; border: 1px solid var(--pink-accent);
             background: white; color: var(--text-dark); outline: none;
+        }
+        #2gis-map {
+            width: 100%; height: 300px; z-index: 1; position: relative;
         }
     </style>
 </head>
@@ -138,7 +142,7 @@
 
         <div class="product-grid" id="product-list">
             <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider" onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом.')">
+                <div class="image-slider" onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом. Идеально для праздника.')">
                     <img src="elsa1023.jpg">
                     <img src="elsa1023(2).jpg">
                 </div>
@@ -156,7 +160,7 @@
             </div>
 
             <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider" onclick="openProduct('Эльза 0425', 1500, 'elsa0425.jpg', 'Классическое платье принцессы.')">
+                <div class="image-slider" onclick="openProduct('Эльза 0425', 1500, 'elsa0425.jpg', 'Классическое платье принцессы для маленьких модниц.')">
                     <img src="elsa0425.jpg">
                     <img src="elsa0425(2).jpg">
                 </div>
@@ -188,7 +192,7 @@
                 <option value="5post">5post (выбор на карте)</option>
             </select>
             <div id="cdek-map-container" class="hidden w-full mt-2 rounded-xl overflow-hidden border border-pink-200">
-                <div id="2gis-map" style="width:100%; height:300px;"></div>
+                <div id="2gis-map"></div>
                 <p id="selected-address-text" class="p-2 text-xs text-center text-pink-600 font-bold">Укажите адрес на карте</p>
             </div>
             <button class="btn-pink py-4 text-lg mt-4" id="final-btn" onclick="sendOrder()">ОФОРМИТЬ ЗАКАЗ</button>
@@ -203,8 +207,8 @@
 
     <div id="profile-tab" class="container hidden">
         <div class="text-center mb-6">
-            <img id="user-pic" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-pink-300" src="https://via.placeholder.com/100">
-            <h2 id="user-name" class="text-lg font-bold">Покупатель</h2>
+            <img id="user-pic" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-pink-300" src="">
+            <h2 id="user-name" class="text-lg font-bold">Загрузка...</h2>
         </div>
         <h3 class="font-bold mb-3 border-b pb-1">История заказов</h3>
         <div id="order-history" class="space-y-2 mb-6"></div>
@@ -235,12 +239,10 @@
         let selectedCdekAddress = "";
         let map;
 
-        // --- КАРТА ---
         function init2GIS() {
-            if (map || typeof mapgl === 'undefined') return;
-
+            if (map) return;
             const MY_API_KEY = 'cab82c94-e619-42eb-9814-3361712feaf0'; 
-            
+
             map = new mapgl.Map('2gis-map', {
                 center: [37.6175, 55.7558],
                 zoom: 12,
@@ -256,40 +258,28 @@
                 const { lng, lat } = e.lngLat;
                 marker.setCoordinates(e.lngLat);
                 marker.show();
-                
                 document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
 
-            // Используем эндпоинт Geocoder API для обратного геокодирования
-fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=${MY_API_KEY}`)
-    .then(res => {
-        if (!res.ok) throw new Error('Ошибка сети или лимитов');
-        return res.json();
-    })
-    .then(data => {
-        // Проверяем наличие результата в массиве items
-        if (data.result && data.result.items && data.result.items.length > 0) {
-            let item = data.result.items[0];
-            
-            // Собираем адрес: сначала ищем наиболее точное название (дом/улица)
-            let address = item.address_name || item.full_name || item.name;
-            
-            selectedCdekAddress = address;
-            document.getElementById('selected-address-text').innerText = "📍 " + address;
-            document.getElementById('selected-address-text').classList.remove('text-pink-600');
-            document.getElementById('selected-address-text').classList.add('text-green-600');
-        } else {
-            document.getElementById('selected-address-text').innerText = "📍 Адрес не найден, нажмите точнее на здание";
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        document.getElementById('selected-address-text').innerText = "❌ Ошибка загрузки адреса";
-    });  
+                fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=${MY_API_KEY}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.result && data.result.items.length > 0) {
+                            let item = data.result.items[0];
+                            let address = item.address_name || item.full_name || item.name;
+                            selectedCdekAddress = address;
+                            document.getElementById('selected-address-text').innerText = "📍 " + address;
+                        } else {
+                            document.getElementById('selected-address-text').innerText = "📍 Адрес не найден";
+                        }
+                    })
+                    .catch(() => {
+                        document.getElementById('selected-address-text').innerText = "❌ Ошибка загрузки";
+                    });
+            });
 
-            // Геолокация
             if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    map.setCenter([pos.coords.longitude, pos.coords.latitude]);
+                navigator.geolocation.getCurrentPosition((position) => {
+                    map.setCenter([position.coords.longitude, position.coords.latitude]);
                     map.setZoom(14);
                 });
             }
@@ -299,13 +289,12 @@ fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fiel
             const container = document.getElementById('cdek-map-container');
             if (val !== "") {
                 container.classList.remove('hidden');
-                setTimeout(init2GIS, 150);
+                setTimeout(init2GIS, 200);
             } else {
                 container.classList.add('hidden');
             }
         }
 
-        // --- ЛОГИКА МАГАЗИНА ---
         function selectSize(btn) {
             btn.parentElement.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
@@ -366,12 +355,7 @@ fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fiel
             }
         }
 
-        function updateQuantity(idx, d) { 
-            cart[idx].quantity += d; 
-            if (cart[idx].quantity <= 0) cart.splice(idx, 1); 
-            renderCart(); 
-        }
-
+        function updateQuantity(idx, d) { cart[idx].quantity += d; if (cart[idx].quantity <= 0) cart.splice(idx, 1); renderCart(); }
         function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
 
         function toggleFavorite(btn, name, price, img, groupId) {
@@ -402,30 +386,27 @@ fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fiel
             `).join('');
         }
 
-        function removeFromFav(idx) { 
-            favorites.splice(idx, 1); 
-            localStorage.setItem('my_favorites', JSON.stringify(favorites)); 
-            renderFavorites(); 
-        }
+        function removeFromFav(idx) { favorites.splice(idx, 1); localStorage.setItem('my_favorites', JSON.stringify(favorites)); renderFavorites(); }
 
         function sendOrder() {
             const fio = document.getElementById('fio').value.trim();
-            const phone = document.getElementById('phone').value.trim().replace(/\D/g, '');
-
+            const phone = document.getElementById('phone').value.trim();
             if (fio.split(' ').length < 2) return tg.showAlert("Введите Имя и Фамилию!");
-            if (phone.length !== 11) return tg.showAlert("Номер телефона должен быть 11 цифр!");
+            if (phone.length < 11) return tg.showAlert("Введите корректный номер!");
             if (!selectedCdekAddress) return tg.showAlert("Выберите адрес на карте!");
 
             const order = {
                 type: 'new_order',
-                fio, phone, items: cart,
+                fio: fio,
+                phone: phone,
+                items: cart,
                 total: cart.reduce((s, i) => s + (i.price * i.quantity), 0),
                 address: selectedCdekAddress,
                 date: new Date().toLocaleDateString()
             };
 
             tg.sendData(JSON.stringify(order));
-            tg.showAlert("Заказ успешно отправлен! ✨");
+            tg.showAlert("Заказ отправлен! ✨");
             cart = []; renderCart();
             showTab('profile', document.querySelector('.fa-user-circle').parentElement);
         }
@@ -434,7 +415,7 @@ fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fiel
             const container = document.getElementById('order-history');
             const orders = JSON.parse(localStorage.getItem('my_orders') || '[]');
             container.innerHTML = orders.length ? orders.map(o => `
-                <div class="p-3 bg-white rounded-xl mb-2 border-l-4 border-pink-500 shadow-sm text-xs">
+                <div class="p-3 bg-white rounded-xl mb-2 border-l-4 border-pink-500 text-xs">
                     <b>Заказ на ${o.total} ₽</b> — ${o.date}
                 </div>
             `).join('') : '<p class="text-center opacity-50">Заказов пока нет</p>';
@@ -455,12 +436,9 @@ fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fiel
             });
         }
 
-        // Загрузка данных юзера
-        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+        if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
-            if (tg.initDataUnsafe.user.photo_url) {
-                document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url;
-            }
+            document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || 'https://via.placeholder.com/100';
         }
     </script>
 </body>
