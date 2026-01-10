@@ -170,43 +170,34 @@
 
         map.on('click', (e) => {
     const { lng, lat } = e.lngLat;
-    
-    // 1. Ставим маркер
     marker.setCoordinates(e.lngLat);
     marker.show();
     
-    // 2. Визуальный отклик
-    document.getElementById('selected-address-text').innerText = "⏳ Ищу адрес...";
+    const statusText = document.getElementById('selected-address-text');
+    statusText.innerText = "⏳ Определение адреса...";
 
-    // 3. Запрос к API 2ГИС (используем 3.0 items)
-    // Добавляем параметр radius=50, чтобы искать ближайшее здание к точке клика
-    const url = `https://catalog.api.2gis.com/3.0/items?point=${lng},${lat}&radius=50&type=building&key=${MY_API_KEY}`;
+    // ВАЖНО: убедитесь, что переменная MY_API_KEY содержит актуальный ключ из личного кабинета
+    const url = `https://catalog.api.2gis.com/3.0/items/geocode?key=${MY_API_KEY}&lat=${lat}&lon=${lng}&fields=items.address_name,items.full_name`;
 
     fetch(url)
         .then(res => {
-            if (!res.ok) throw new Error('Ошибка сети');
+            if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
             return res.json();
         })
         .then(data => {
             if (data.result && data.result.items && data.result.items.length > 0) {
-                // Берем самый первый найденный объект (здание)
-                let item = data.result.items[0];
-                let addr = item.address_name || item.full_name || item.name;
-                
+                const item = data.result.items[0];
+                const addr = item.address_name || item.full_name || "Адрес определен";
                 selectedCdekAddress = addr;
-                document.getElementById('selected-address-text').innerText = "📍 " + addr;
-                
-                // Легкая вибрация при успехе
+                statusText.innerText = "📍 " + addr;
                 tg.HapticFeedback.impactOccurred('medium');
             } else {
-                // Если здание не найдено, пробуем просто координаты (обратное геокодирование)
-                document.getElementById('selected-address-text').innerText = `📍 Координаты: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                selectedCdekAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                statusText.innerText = "📍 Адрес не найден";
             }
         })
         .catch(err => {
-            console.error('Ошибка:', err);
-            document.getElementById('selected-address-text').innerText = "❌ Ошибка получения адреса";
+            statusText.innerText = "❌ Ошибка ключа или сети";
+            console.error(err);
         });
 });
 
