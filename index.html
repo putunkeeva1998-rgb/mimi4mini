@@ -149,7 +149,7 @@
 
         <div class="product-grid" id="product-list">
             <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider"onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом. Состав: 100% полиэстер. Подходит для праздников, утренников и фотосессий.')">>
+                <div class="image-slider" onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом. Состав: 100% полиэстер. Подходит для праздников, утренников и фотосессий.')">>
                     <img src="elsa1023.jpg">
                     <img src="elsa1023(2).jpg">
                 </div>
@@ -387,48 +387,47 @@ function updateQuantity(idx, delta) {
         function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
 
         // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
-        function sendOrder() {
+       // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
+function sendOrder() {
     const fio = document.getElementById('fio').value.trim();
     const phone = document.getElementById('phone').value.trim();
     const deliveryType = document.getElementById('delivery').value;
     const addressInput = document.getElementById('address-input').value.trim();
 
-            // ГЕНЕРАЦИЯ НОМЕРА ЗАКАЗА (Дата + Номер)
+    // 1. ГЕНЕРАЦИЯ НОМЕРА ЗАКАЗА (Дата + Номер)
     const now = new Date();
     const datePart = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\./g, '');
     let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
     const orderId = `${datePart}-${savedOrders.length + 1}`;
-    
-    // 1. ГЕНЕРАЦИЯ НОМЕРА ЗАКАЗА (Дата + Порядковый номер)
-    const now = new Date();
-    const datePart = now.toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: '2-digit' }).replace(/\./g, '');
-    let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-    const orderId = `${datePart}-${savedOrders.length + 1}`;
-            
+
     const cleanPhone = phone.replace(/\D/g, ""); // Очистка от лишних знаков
 
-    // Проверка Имени
+    // 2. ПРОВЕРКА ИМЕНИ
     if (fio.length < 2) {
         tg.showAlert("Пожалуйста, введите корректное Имя!");
         return;
     }
 
-    // Проверка Телефона (не менее 11 цифр и защита от 000/999)
+    // 3. ПРОВЕРКА ТЕЛЕФОНА (не менее 11 цифр и защита от 000/999)
     if (cleanPhone.length < 11 || /^(\d)\1+$/.test(cleanPhone)) {
-        tg.showAlert("Введите корректный номер телефона (например, 8915...)!");
+        tg.showAlert("Введите корректный номер телефона (например, 8915... )!");
         return;
     }
-            if (deliveryType !== '5post' && addressInput.length < 5) {
+
+    // Проверка адреса
+    if (deliveryType !== '5post' && addressInput.length < 5) {
         tg.showAlert("Пожалуйста, введите адрес доставки!");
         return;
     }
 
-    const finalDelivery = (deliveryType === 'СДЭК' && typeof selectedCdekAddress !== 'undefined' && selectedCdekAddress) 
-        ? `СДЭК ПВЗ: ${selectedCdekAddress}` 
+    // 4. ФОРМИРОВАНИЕ ДАННЫХ ДОСТАВКИ
+    const finalDelivery = (deliveryType === 'СДЭК' && typeof selectedCdekAddress !== 'undefined' && selectedCdekAddress)
+        ? `СДЭК ПВЗ: ${selectedCdekAddress}`
         : (deliveryType === '5post' ? '5post' : `${deliveryType}: ${addressInput}`);
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+    // 5. ОБЪЕКТ ЗАКАЗА
     const orderData = {
         type: 'new_order',
         data: {
@@ -438,21 +437,21 @@ function updateQuantity(idx, delta) {
             delivery: finalDelivery,
             items: cart,
             total: total,
-            date: new Date().toLocaleDateString()
+            date: now.toLocaleDateString()
         }
     };
 
-    // 3. Эта команда теперь выполнится успешно
-    tg.sendData(JSON.stringify(orderData));
+    // 6. ОТПРАВКА И ОЧИСТКА
+    tg.sendData(JSON.stringify(orderData)); // Отправка боту
 
     savedOrders.unshift(orderData.data);
     localStorage.setItem('my_orders', JSON.stringify(savedOrders));
     
     tg.showAlert(`Заказ №${orderId} успешно отправлен!`);
-    // ... очистка корзины ...
-}
     cart = []; 
     renderCart();
+    showTab('profile', document.querySelector('.nav-item i.fa-user-circle').parentElement);
+}
     
     // Автопереход в профиль после заказа
     const profileBtn = document.querySelector('.nav-item i.fa-user-circle').parentElement;
