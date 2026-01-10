@@ -267,40 +267,36 @@
     });
 
     map.on('click', (e) => {
-    const { lng, lat } = e.lngLat;
-    marker.setCoordinates(e.lngLat);
-    marker.show();
-    
-    // Мгновенный отклик
-    document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
+        const { lng, lat } = e.lngLat;
+        marker.setCoordinates(e.lngLat);
+        marker.show();
+        
+        document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
 
-    // Ускоренный запрос (ограничиваем поиск только адресом)
-    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&radius=100&fields=items.address_name&key=cab82c94-e619-42eb-9814-3361712feaf0`)
-        .then(res => res.json())
-        .then(data => {
-            let address = "Адрес не найден";
-            if (data.result && data.result.items.length > 0) {
-                address = data.result.items[0].address_name || data.result.items[0].full_name;
-            }
-            selectedCdekAddress = address;
-            document.getElementById('selected-address-text').innerText = "📍 " + address;
-        })
-        .catch(() => {
-            document.getElementById('selected-address-text').innerText = "📍 Ошибка связи. Нажмите еще раз";
-        });
-});
-}
+        fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&radius=100&fields=items.address_name&key=cab82c94-e619-42eb-9814-3361712feaf0`)
+            .then(res => res.json())
+            .then(data => {
+                let address = "Адрес не найден";
+                if (data.result && data.result.items.length > 0) {
+                    address = data.result.items[0].address_name || data.result.items[0].full_name;
+                }
+                selectedCdekAddress = address;
+                document.getElementById('selected-address-text').innerText = "📍 " + address;
+            })
+            .catch(() => {
+                document.getElementById('selected-address-text').innerText = "📍 Ошибка связи. Нажмите еще раз";
+            });
+    }); // Вот здесь должна быть ТОЛЬКО ОДНА закрывающая скобка для map.on
 
-
-        function toggleDeliveryMap(val) {
-            const container = document.getElementById('cdek-map-container');
-            if (val !== "") {
-                container.classList.remove('hidden');
-                setTimeout(init2GIS, 150);
-            } else {
-                container.classList.add('hidden');
-            }
+    function toggleDeliveryMap(val) {
+        const container = document.getElementById('cdek-map-container');
+        if (val !== "") {
+            container.classList.remove('hidden');
+            setTimeout(init2GIS, 150);
+        } else {
+            container.classList.add('hidden');
         }
+    }
 
         // --- КАТАЛОГ ---
         function selectSize(btn) {
