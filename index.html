@@ -7,8 +7,7 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <script src="https://api-maps.yandex.ru/2.1/?lang=ru_RU" type="text/javascript"></script>
-    <script id="ISDS_ID" type="text/javascript" src="https://widget.cdek.ru/widget/widjet.js" charset="utf-8"></script>
+    <script src="https://mapgl.2gis.com/api/js/v1"></script>
     <style>
         :root {
             --pink-main: #ffeff2;
@@ -125,15 +124,10 @@
             background: white; color: var(--text-dark); outline: none;
         }
         
-        .order-history-item {
-            background: white;
-            padding: 12px;
-            border-radius: 12px;
-            margin-bottom: 8px;
-            border-left: 4px solid var(--pink-dark);
-            text-align: left;
-            font-size: 0.85rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        #selected-address-text {
+            background: #fff0f3;
+            border-radius: 8px;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -149,7 +143,7 @@
 
         <div class="product-grid" id="product-list">
             <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider" onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом. Состав: 100% полиэстер. Подходит для праздников, утренников и фотосессий.')">
+                <div class="image-slider" onclick="openProduct('Эльза 1023', 1500, 'elsa1023.jpg', 'Волшебное платье Эльзы со шлейфом.')">
                     <img src="elsa1023.jpg">
                     <img src="elsa1023(2).jpg">
                 </div>
@@ -161,31 +155,11 @@
                         <button class="size-btn active" onclick="selectSize(this)">100</button>
                         <button class="size-btn" onclick="selectSize(this)">110</button>
                         <button class="size-btn" onclick="selectSize(this)">120</button>
-                        <button class="size-btn" onclick="selectSize(this)">130</button>
-                        <button class="size-btn" onclick="selectSize(this)">140</button>
                     </div>
                     <button class="btn-pink" onclick="addToCart('Эльза 1023', 1500, 'elsa1023.jpg', 'size-1')">В КОРЗИНУ</button>
                 </div>
             </div>
-
-            <div class="card product-card" data-category="платья карнавальные">
-                <div class="image-slider" onclick="openProduct('Эльза 0425', 1500, 'elsa0425.jpg', 'Классическое платье принцессы.')">
-                    <img src="elsa0425.jpg">
-                    <img src="elsa0425(2).jpg">
-                </div>
-                <button class="fav-btn" onclick="toggleFavorite(this, 'Эльза 0425', 1500, 'elsa0425.jpg', 'size-2')"><i class="fas fa-heart"></i></button>
-                <div class="p-3 flex-1 flex flex-col">
-                    <h2 class="text-sm font-bold truncate">Эльза 0425</h2>
-                    <span class="price-tag">1500 ₽</span>
-                    <div class="size-container" id="size-2">
-                        <button class="size-btn active" onclick="selectSize(this)">100</button>
-                        <button class="size-btn" onclick="selectSize(this)">110</button>
-                        <button class="size-btn" onclick="selectSize(this)">120</button>
-                    </div>
-                    <button class="btn-pink" onclick="addToCart('Эльза 0425', 1500, 'elsa0425.jpg', 'size-2')">В КОРЗИНУ</button>
-                </div>
             </div>
-        </div>
     </div>
 
     <div id="cart-tab" class="container hidden">
@@ -195,17 +169,18 @@
             <input type="text" id="fio" placeholder="Ваше Имя и Фамилия">
             <input type="tel" id="phone" placeholder="Номер телефона">
             <select id="delivery" onchange="toggleDeliveryMap(this.value)">
-                <option value="СДЭК">СДЭК</option>
-                <option value="Почта России">Почта России</option>
-                <option value="5post">5post (через карту)</option>
+                <option value="">Выберите способ доставки</option>
+                <option value="СДЭК">СДЭК (выбор на карте)</option>
+                <option value="Почта России">Почта России (введите адрес в ФИО)</option>
+                <option value="5post">5post (выбор на карте)</option>
             </select>
-            <div id="cdek-map-container" class="hidden w-full h-80 mt-2 rounded-xl overflow-hidden border border-pink-200 shadow-inner">
-                <div id="cdek-map" style="width:100%; height:100%;"></div>
+            
+            <div id="cdek-map-container" class="hidden w-full mt-2 rounded-xl overflow-hidden border border-pink-200 shadow-inner">
+                <div id="2gis-map" style="width:100%; height:300px;"></div>
+                <p id="selected-address-text" class="p-2 text-xs text-center text-pink-600 font-bold">Кликните на карту, чтобы выбрать пункт</p>
             </div>
-            <button id="btn-5post-map" class="hidden w-full mb-3 bg-orange-100 text-orange-600 p-2 rounded-lg text-xs border border-orange-200" onclick="tg.openLink('https://fivepost.ru/pick-up-points/')">
-                📍 Найти пункт 5post на карте
-            </button>
-            <button class="btn-pink py-4 text-lg" onclick="sendOrder()">ОФОРМИТЬ ЗАКАЗ</button>
+
+            <button class="btn-pink py-4 text-lg mt-4" onclick="sendOrder()">ОФОРМИТЬ ЗАКАЗ</button>
         </div>
         <div id="empty-cart-msg" class="text-center opacity-50 py-10">В корзине пусто 🌸</div>
     </div>
@@ -234,13 +209,6 @@
         <a href="javascript:void(0)" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user-circle mb-1 text-xl"></i>Профиль</a>
     </nav>
 
-    <div id="product-modal" class="hidden fixed inset-0 bg-black/80 z-[3000] flex items-center justify-center p-4">
-        <div class="bg-white rounded-[30px] w-full max-w-md overflow-hidden relative shadow-2xl">
-            <button onclick="closeProduct()" class="absolute top-4 right-4 bg-white/80 rounded-full w-8 h-8 flex items-center justify-center shadow-lg z-10">✕</button>
-            <div id="modal-content"></div>
-        </div>
-    </div>
-
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
@@ -248,22 +216,45 @@
 
         let cart = [];
         let favorites = JSON.parse(localStorage.getItem('my_favorites') || '[]');
-
         let selectedCdekAddress = "";
+        let map; 
 
-        // Инициализация виджета СДЭК
-        const cdekWidjet = new ISDSWIDJET({
-            defaultCity: 'Москва',
-            cityFrom: 'Москва', 
-            link: 'cdek-map', 
-            path: 'https://widget.cdek.ru/widget/scripts/',
-            servicepath: 'https://widget.cdek.ru/widget/scripts/service.php'
-        });
+        // Инициализация 2ГИС
+        function init2GIS() {
+            if (map) return;
+            
+            map = new mapgl.Map('2gis-map', {
+                center: [37.6175, 55.7558], // Москва по умолчанию
+                zoom: 12,
+                key: 'cab82c94-e619-42eb-9814-3361712feaf0',
+            });
 
-        cdekWidjet.onChoose(function(info) {
-            selectedCdekAddress = info.address;
-            tg.showAlert("Выбран адрес СДЭК: " + info.address);
-        });
+            const marker = new mapgl.Marker(map, {
+                coordinates: [37.6175, 55.7558],
+                visible: false,
+                icon: 'https://docs.2gis.com/img/mapgl/marker.svg', // Можно заменить на свою иконку
+            });
+
+            map.on('click', (e) => {
+                const lngLat = e.lngLat;
+                marker.setCoordinates(lngLat);
+                marker.show();
+                selectedCdekAddress = `Координаты: ${lngLat[1].toFixed(5)}, ${lngLat[0].toFixed(5)}`;
+                document.getElementById('selected-address-text').innerText = "📍 Выбрано: " + selectedCdekAddress;
+                tg.HapticFeedback.impactOccurred('light');
+            });
+        }
+
+        // Единственная функция для переключения карт
+        function toggleDeliveryMap(val) {
+            const container = document.getElementById('cdek-map-container');
+            if (val === 'СДЭК' || val === '5post') {
+                container.classList.remove('hidden');
+                setTimeout(init2GIS, 150);
+            } else {
+                container.classList.add('hidden');
+            }
+        }
 
         function selectSize(btn) {
             const parent = btn.parentElement;
@@ -272,86 +263,19 @@
             tg.HapticFeedback.impactOccurred('light');
         }
 
-        function toggleDeliveryMap(val) {
-            const cdekContainer = document.getElementById('cdek-map-container');
-            const btn5Post = document.getElementById('btn-5post-map');
-            cdekContainer.classList.add('hidden');
-            btn5Post.classList.add('hidden');
-
-            if (val === 'СДЭК') {
-                cdekContainer.classList.remove('hidden');
-                setTimeout(() => { if (typeof cdekWidjet !== 'undefined') cdekWidjet.bindWidget(); }, 100);
-            } else if (val === '5post') {
-                btn5Post.classList.remove('hidden');
-            }
-        }
-
         function addToCart(name, price, img, groupId) {
             const group = document.getElementById(groupId);
             const activeBtn = group.querySelector('.size-btn.active');
             const size = activeBtn ? activeBtn.innerText : '100';
-        
             const existingItem = cart.find(item => item.name === name && item.size === 'Размер ' + size);
+            
             if (existingItem) {
                 existingItem.quantity += 1;
             } else {
                 cart.push({ name, price, img, size: 'Размер ' + size, quantity: 1 });
             }
-        
             tg.HapticFeedback.notificationOccurred('success');
             renderCart();
-        }
-        
-        function updateQuantity(idx, delta) {
-            cart[idx].quantity += delta;
-            if (cart[idx].quantity <= 0) cart.splice(idx, 1);
-            renderCart();
-        }
-
-        // --- ЛОГИКА ИЗБРАННОГО ---
-        function toggleFavorite(btn, name, price, img, groupId) {
-            const group = document.getElementById(groupId);
-            const size = group.querySelector('.size-btn.active').innerText;
-            
-            btn.classList.toggle('active');
-            tg.HapticFeedback.impactOccurred('medium');
-
-            const itemIndex = favorites.findIndex(f => f.name === name && f.size === size);
-
-            if (itemIndex === -1) {
-                favorites.push({ name, price, img, size: size });
-                tg.showAlert("Добавлено в избранное с размером " + size);
-            } else {
-                favorites.splice(itemIndex, 1);
-            }
-            
-            localStorage.setItem('my_favorites', JSON.stringify(favorites));
-            renderFavorites();
-        }
-
-        function renderFavorites() {
-            const list = document.getElementById('favorites-list');
-            if (favorites.length === 0) {
-                list.innerHTML = '<p class="col-span-2 text-center opacity-50 py-10">Тут пока пусто 🎀</p>';
-                return;
-            }
-            list.innerHTML = favorites.map((f, idx) => `
-                <div class="card p-2 relative">
-                    <button class="fav-btn active" onclick="removeFromFav(${idx})"><i class="fas fa-heart"></i></button>
-                    <img src="${f.img}" class="w-full h-32 object-cover rounded-lg mb-2">
-                    <b class="text-xs truncate">${f.name}</b>
-                    <small class="text-[9px] block text-gray-400">Размер: ${f.size}</small>
-                    <span class="text-pink-500 font-bold text-sm">${f.price} ₽</span>
-                </div>
-            `).join('');
-        }
-
-        function removeFromFav(idx) {
-            favorites.splice(idx, 1);
-            localStorage.setItem('my_favorites', JSON.stringify(favorites));
-            renderFavorites();
-            // Снимаем активность с кнопок в каталоге
-            document.querySelectorAll('.fav-btn').forEach(btn => btn.classList.remove('active'));
         }
 
         function renderCart() {
@@ -362,26 +286,24 @@
             if (cart.length > 0) {
                 const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
                 list.innerHTML = cart.map((item, idx) => `
-                    <div class="flex items-center p-3 bg-white rounded-xl mb-2 border border-pink-100 shadow-sm">
+                    <div class="flex items-center p-3 bg-white rounded-xl mb-2 border border-pink-100">
                         <img src="${item.img}" class="w-14 h-14 object-cover rounded-lg mr-3">
                         <div class="flex-1">
                             <b class="text-sm">${item.name}</b>
                             <small class="text-pink-400 block">${item.size}</small>
                             <div class="flex items-center mt-2">
-                                <button onclick="updateQuantity(${idx}, -1)" class="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center">-</button>
+                                <button onclick="updateQuantity(${idx}, -1)" class="w-6 h-6 bg-pink-100 rounded-full">-</button>
                                 <span class="mx-3 text-sm font-bold">${item.quantity}</span>
-                                <button onclick="updateQuantity(${idx}, 1)" class="w-6 h-6 bg-pink-100 text-pink-600 rounded-full flex items-center justify-center">+</button>
+                                <button onclick="updateQuantity(${idx}, 1)" class="w-6 h-6 bg-pink-100 rounded-full">+</button>
                             </div>
                         </div>
                         <div class="text-right">
                             <div class="font-bold text-pink-500">${item.price * item.quantity} ₽</div>
-                            <button onclick="removeItem(${idx})" class="mt-1 text-red-300 text-xs"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 `).join('');
                 form.classList.remove('hidden');
                 msg.classList.add('hidden');
-                form.querySelector('button').innerText = `КУПИТЬ ЗА ${total} ₽`;
             } else {
                 list.innerHTML = '';
                 form.classList.add('hidden');
@@ -389,82 +311,47 @@
             }
         }
 
-        function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
-
-        // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ (ИСПРАВЛЕНА) ---
-        // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
-function sendOrder() {
-    try {
-        const fio = document.getElementById('fio').value.trim();
-        const phone = document.getElementById('phone').value.trim();
-        
-        if (fio.length < 2 || phone.length < 10) {
-            tg.showAlert("Пожалуйста, заполните Имя и корректный телефон!");
-            return;
+        function updateQuantity(idx, delta) {
+            cart[idx].quantity += delta;
+            if (cart[idx].quantity <= 0) cart.splice(idx, 1);
+            renderCart();
         }
 
-        const now = new Date();
-        const orderId = `${now.getDate()}${now.getMonth() + 1}-${Math.floor(Math.random() * 100)}`;
-        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        function sendOrder() {
+            const fio = document.getElementById('fio').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const delivery = document.getElementById('delivery').value;
 
-        const orderData = {
-            type: 'new_order',
-            data: {
-                orderId: orderId,
-                fio: fio,
-                phone: phone,
-                items: cart,
-                total: total,
-                date: now.toLocaleDateString()
+            if (fio.length < 2 || phone.length < 10) {
+                tg.showAlert("Заполните имя и телефон!");
+                return;
             }
-        };
 
-        // ОТПРАВКА ДАННЫХ БОТУ
-        tg.sendData(JSON.stringify(orderData));
-        
-        // СОХРАНЕНИЕ В ИСТОРИЮ
-        let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-        savedOrders.unshift(orderData.data);
-        localStorage.setItem('my_orders', JSON.stringify(savedOrders));
+            if ((delivery === 'СДЭК' || delivery === '5post') && !selectedCdekAddress) {
+                tg.showAlert("Пожалуйста, выберите точку на карте!");
+                return;
+            }
 
-        tg.showAlert("Заказ №" + orderId + " успешно отправлен!");
-        
-        // ОЧИСТКА
-        cart = [];
-        renderCart();
-        showTab('profile', document.querySelector('.nav-item i.fa-user-circle').parentElement);
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const orderData = {
+                type: 'new_order',
+                fio, phone, delivery,
+                address: selectedCdekAddress,
+                items: cart,
+                total
+            };
 
-    } catch (e) {
-        console.error(e);
-        alert("Ошибка при оформлении. Проверьте заполнение полей.");
-    }
-}
-
-function renderOrders() {
-    const container = document.getElementById('order-history');
-    const orders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-    if (orders.length === 0) {
-        container.innerHTML = '<p class="text-center opacity-50">История заказов пуста</p>';
-        return;
-    }
-    container.innerHTML = orders.map(o => `
-        <div class="p-3 bg-white rounded-xl mb-2 border-l-4 border-pink-500 shadow-sm text-xs">
-            <div class="flex justify-between font-bold mb-1">
-                <span>Заказ №${o.orderId}</span>
-                <span class="text-pink-500">${o.total} ₽</span>
-            </div>
-            <div class="opacity-60">${o.date}</div>
-        </div>
-    `).join('');
-}
+            tg.sendData(JSON.stringify(orderData));
+            tg.showAlert("Заказ отправлен!");
+            cart = [];
+            renderCart();
+        }
 
         function showTab(id, el) {
             document.querySelectorAll('.container').forEach(t => t.classList.add('hidden'));
             document.getElementById(id + '-tab').classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
-            if(id === 'profile') renderOrders();
-            if(id === 'favorites') renderFavorites();
         }
 
         function filterCategory(cat) {
@@ -473,31 +360,11 @@ function renderOrders() {
             });
         }
 
-        function openProduct(name, price, img, desc) {
-            const content = document.getElementById('modal-content');
-            content.innerHTML = `
-                <img src="${img}" class="w-full h-72 object-cover">
-                <div class="p-6">
-                    <h2 class="text-2xl font-bold mb-2">${name}</h2>
-                    <p class="text-pink-500 text-xl font-black mb-4">${price} ₽</p>
-                    <div class="text-gray-600 text-sm leading-relaxed mb-6">${desc}</div>
-                    <button class="btn-pink w-full py-4 rounded-2xl font-bold" onclick="closeProduct()">ПОНЯТНО</button>
-                </div>
-            `;
-            document.getElementById('product-modal').classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeProduct() {
-            document.getElementById('product-modal').classList.add('hidden');
-            document.body.style.overflow = 'auto';
-        }
-
+        // Данные пользователя
         if (tg.initDataUnsafe.user) {
             document.getElementById('user-name').innerText = tg.initDataUnsafe.user.first_name;
             document.getElementById('user-pic').src = tg.initDataUnsafe.user.photo_url || 'https://via.placeholder.com/100';
         }
-        renderOrders();
     </script>
 </body>
 </html>
