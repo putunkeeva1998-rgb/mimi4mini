@@ -180,25 +180,28 @@
     const url = `https://catalog.api.2gis.com/3.0/items/geocode?key=${MY_API_KEY}&lat=${lat}&lon=${lng}&fields=items.address_name,items.full_name`;
 
     fetch(url)
-        .then(res => {
-            if (!res.ok) throw new Error(`Ошибка: ${res.status}`);
-            return res.json();
-        })
-        .then(data => {
-            if (data.result && data.result.items && data.result.items.length > 0) {
-                const item = data.result.items[0];
-                const addr = item.address_name || item.full_name || "Адрес определен";
-                selectedCdekAddress = addr;
-                statusText.innerText = "📍 " + addr;
-                tg.HapticFeedback.impactOccurred('medium');
-            } else {
-                statusText.innerText = "📍 Адрес не найден";
-            }
-        })
-        .catch(err => {
-            statusText.innerText = "❌ Ошибка ключа или сети";
-            console.error(err);
-        });
+    .then(res => res.json())
+    .then(data => {
+        // Проверяем структуру данных максимально гибко
+        let items = data && data.result && data.result.items;
+        if (items && items.length > 0) {
+            let item = items[0];
+            let addr = item.address_name || item.full_name || item.name || "Адрес найден";
+            selectedCdekAddress = addr;
+            statusText.innerText = "📍 " + addr;
+        } else {
+            // Если API ответило, но адрес не нашло (пустырь)
+            selectedCdekAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            statusText.innerText = "📍 Точка: " + selectedCdekAddress;
+        }
+        tg.HapticFeedback.impactOccurred('medium');
+    })
+    .catch(err => {
+        // Если случилась сетевая ошибка или CORS, всё равно сохраняем координаты!
+        console.error('Критическая ошибка API:', err);
+        selectedCdekAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        statusText.innerText = "📍 Координаты: " + selectedCdekAddress;
+    });
 });
 
         // Сразу после создания "пинаем" карту, чтобы она отрисовалась
