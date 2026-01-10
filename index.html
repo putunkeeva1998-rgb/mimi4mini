@@ -169,21 +169,46 @@
         });
 
         map.on('click', (e) => {
-            const { lng, lat } = e.lngLat;
-            marker.setCoordinates(e.lngLat);
-            marker.show();
-            document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
+    const { lng, lat } = e.lngLat;
+    
+    // 1. Ставим маркер
+    marker.setCoordinates(e.lngLat);
+    marker.show();
+    
+    // 2. Визуальный отклик
+    document.getElementById('selected-address-text').innerText = "⏳ Ищу адрес...";
 
-            fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=${MY_API_KEY}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data.result && data.result.items.length > 0) {
-                        let addr = data.result.items[0].address_name || data.result.items[0].full_name;
-                        selectedCdekAddress = addr;
-                        document.getElementById('selected-address-text').innerText = "📍 " + addr;
-                    }
-                });
+    // 3. Запрос к API 2ГИС (используем 3.0 items)
+    // Добавляем параметр radius=50, чтобы искать ближайшее здание к точке клика
+    const url = `https://catalog.api.2gis.com/3.0/items?point=${lng},${lat}&radius=50&type=building&key=${MY_API_KEY}`;
+
+    fetch(url)
+        .then(res => {
+            if (!res.ok) throw new Error('Ошибка сети');
+            return res.json();
+        })
+        .then(data => {
+            if (data.result && data.result.items && data.result.items.length > 0) {
+                // Берем самый первый найденный объект (здание)
+                let item = data.result.items[0];
+                let addr = item.address_name || item.full_name || item.name;
+                
+                selectedCdekAddress = addr;
+                document.getElementById('selected-address-text').innerText = "📍 " + addr;
+                
+                // Легкая вибрация при успехе
+                tg.HapticFeedback.impactOccurred('medium');
+            } else {
+                // Если здание не найдено, пробуем просто координаты (обратное геокодирование)
+                document.getElementById('selected-address-text').innerText = `📍 Координаты: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                selectedCdekAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+            }
+        })
+        .catch(err => {
+            console.error('Ошибка:', err);
+            document.getElementById('selected-address-text').innerText = "❌ Ошибка получения адреса";
         });
+});
 
         // Сразу после создания "пинаем" карту, чтобы она отрисовалась
         setTimeout(() => { map.invalidateSize(); }, 300);
