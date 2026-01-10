@@ -423,28 +423,53 @@
 
         // --- ЗАКАЗ ---
         function sendOrder() {
-    const fio = document.getElementById('fio').value;
-    const phone = document.getElementById('phone').value;
-    
-    // Проверка: выбран ли адрес?
-    if (!selectedCdekAddress || selectedCdekAddress === "") {
-        return tg.showAlert("Пожалуйста, выберите пункт выдачи на карте!");
+    const fio = document.getElementById('fio').value.trim();
+    const phone = document.getElementById('phone').value.trim().replace(/\D/g, ''); // Удаляем всё кроме цифр
+
+    // 1. Проверка Имени и Фамилии
+    if (fio.split(' ').length < 2) {
+        return tg.showAlert("Пожалуйста, введите Имя и Фамилию через пробел! 🌸");
     }
 
+    // 2. Проверка длины телефона (ровно 11 цифр)
+    if (phone.length !== 11) {
+        return tg.showAlert("Номер телефона должен состоять из 11 цифр! 📱");
+    }
+
+    // 3. Проверка на подозрительные номера (000000, 666666 и т.д.)
+    const suspiciousPatterns = [/0{6,}/, /1{6,}/, /2{6,}/, /3{6,}/, /4{6,}/, /5{6,}/, /6{6,}/, /7{6,}/, /8{6,}/, /9{6,}/];
+    const isSuspicious = suspiciousPatterns.some(pattern => pattern.test(phone));
+    
+    if (isSuspicious) {
+        return tg.showAlert("Пожалуйста, введите корректный номер телефона (без повторов одной цифры)! ⚠️");
+    }
+
+    // 4. Проверка на разнообразие цифр (чтобы не было 111... или 121212...)
+    const uniqueDigits = new Set(phone.split('')).size;
+    if (uniqueDigits < 4) {
+        return tg.showAlert("В номере слишком мало разных цифр. Проверьте корректность! 🧐");
+    }
+
+    // 5. Проверка: выбран ли адрес?
+    if (!selectedCdekAddress || selectedCdekAddress === "" || selectedCdekAddress.includes("Нажмите точнее")) {
+        return tg.showAlert("Пожалуйста, выберите пункт выдачи на карте! 📍");
+    }
+
+    // Если все проверки пройдены — отправляем
     const order = {
         type: 'new_order',
         fio: fio,
         phone: phone,
         items: cart,
         total: cart.reduce((s, i) => s + (i.price * i.quantity), 0),
-        address: selectedCdekAddress, // Вот здесь должен быть ваш текст
+        address: selectedCdekAddress,
         date: new Date().toLocaleDateString()
     };
 
-    tg.sendData(JSON.stringify(order)); // Отправка данных боту
-    tg.showAlert("Заказ успешно отправлен!");
+    tg.sendData(JSON.stringify(order));
+    tg.showAlert("Заказ успешно отправлен! ✨");
     
-    // Очищаем корзину и переключаем вкладку ПОСЛЕ отправки
+    // Очистка и переход
     cart = []; 
     renderCart();
     const profileBtn = document.querySelector('.fa-user-circle').parentElement;
