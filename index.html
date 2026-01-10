@@ -392,27 +392,20 @@
         function removeItem(idx) { cart.splice(idx, 1); renderCart(); }
 
         // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ (ИСПРАВЛЕНА) ---
-        function sendOrder() {
+        // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
+function sendOrder() {
     try {
-        const fioEl = document.getElementById('fio');
-        const phoneEl = document.getElementById('phone');
+        const fio = document.getElementById('fio').value.trim();
+        const phone = document.getElementById('phone').value.trim();
         
-        if (!fioEl || !phoneEl) {
-            console.error("Поля ввода не найдены! Проверьте id='fio' и id='phone'");
-            return;
-        }
-
-        const fio = fioEl.value.trim();
-        const phone = phoneEl.value.trim();
-
         if (fio.length < 2 || phone.length < 10) {
-            tg.showAlert("Пожалуйста, заполните Имя и номер телефона!");
+            tg.showAlert("Пожалуйста, заполните Имя и корректный телефон!");
             return;
         }
 
         const now = new Date();
-        const datePart = now.toLocaleDateString('ru-RU').replace(/\./g, '');
-        const orderId = `${datePart}-${Math.floor(Math.random() * 1000)}`;
+        const orderId = `${now.getDate()}${now.getMonth() + 1}-${Math.floor(Math.random() * 100)}`;
+        const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
         const orderData = {
             type: 'new_order',
@@ -421,44 +414,49 @@
                 fio: fio,
                 phone: phone,
                 items: cart,
-                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                total: total,
                 date: now.toLocaleDateString()
             }
         };
 
+        // ОТПРАВКА ДАННЫХ БОТУ
         tg.sendData(JSON.stringify(orderData));
-        tg.showAlert("Заказ №" + orderId + " отправлен!");
         
-        // Очистка
+        // СОХРАНЕНИЕ В ИСТОРИЮ
+        let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+        savedOrders.unshift(orderData.data);
+        localStorage.setItem('my_orders', JSON.stringify(savedOrders));
+
+        tg.showAlert("Заказ №" + orderId + " успешно отправлен!");
+        
+        // ОЧИСТКА
         cart = [];
         renderCart();
-        showTab('catalog', document.querySelector('.nav-item')); 
-        
-    } catch (error) {
-        console.error("Ошибка при отправке заказа:", error);
-        alert("Произошла ошибка. Проверьте консоль.");
+        showTab('profile', document.querySelector('.nav-item i.fa-user-circle').parentElement);
+
+    } catch (e) {
+        console.error(e);
+        alert("Ошибка при оформлении. Проверьте заполнение полей.");
     }
 }
-        function renderOrders() {
-            const container = document.getElementById('order-history');
-            let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
-            if (savedOrders.length === 0) {
-                container.innerHTML = '<p class="text-sm opacity-50 text-center">История заказов пуста</p>';
-                return;
-            }
-            container.innerHTML = savedOrders.map(o => `
-                <div class="order-history-item">
-                    <div class="flex justify-between font-bold mb-1 text-xs">
-                        <span>Заказ №${o.orderId || '---'} от ${o.date}</span>
-                        <span class="text-pink-500">${o.total} ₽</span>
-                    </div>
-                    <div class="text-[10px] opacity-60">
-                        ${o.items.map(i => i.name + ' (' + i.size + ') x' + i.quantity).join(', ')}<br>
-                        Доставка: ${o.delivery}
-                    </div>
-                </div>
-            `).join('');
-        }
+
+function renderOrders() {
+    const container = document.getElementById('order-history');
+    const orders = JSON.parse(localStorage.getItem('my_orders') || '[]');
+    if (orders.length === 0) {
+        container.innerHTML = '<p class="text-center opacity-50">История заказов пуста</p>';
+        return;
+    }
+    container.innerHTML = orders.map(o => `
+        <div class="p-3 bg-white rounded-xl mb-2 border-l-4 border-pink-500 shadow-sm text-xs">
+            <div class="flex justify-between font-bold mb-1">
+                <span>Заказ №${o.orderId}</span>
+                <span class="text-pink-500">${o.total} ₽</span>
+            </div>
+            <div class="opacity-60">${o.date}</div>
+        </div>
+    `).join('');
+}
 
         function showTab(id, el) {
             document.querySelectorAll('.container').forEach(t => t.classList.add('hidden'));
