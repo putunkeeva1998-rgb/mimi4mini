@@ -267,39 +267,28 @@
     });
 
     map.on('click', (e) => {
-        const { lng, lat } = e.lngLat;
-        
-        // Ставим маркер сразу, чтобы пользователь видел отклик
-        marker.setCoordinates(e.lngLat);
-        marker.show();
-        document.getElementById('selected-address-text').innerText = "⏳ Загружаю адрес...";
+    const { lng, lat } = e.lngLat;
+    marker.setCoordinates(e.lngLat);
+    marker.show();
+    
+    // Мгновенный отклик
+    document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
 
-        // Делаем запрос к Геокодеру 2ГИС
-        fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=cab82c94-e619-42eb-9814-3361712feaf0`)
-            .then(response => response.json())
-            .then(data => {
-                let address = "";
-                if (data.result && data.result.items.length > 0) {
-                    const item = data.result.items[0];
-                    // Если это конкретное здание, берем его адрес
-                    address = item.address_name || item.full_name || item.name;
-                } else {
-                    address = `Координаты: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                }
-
-                selectedCdekAddress = address;
-                document.getElementById('selected-address-text').innerText = "📍 " + address;
-                
-                if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
-                }
-            })
-            .catch(err => {
-                console.error("Ошибка геокодирования:", err);
-                selectedCdekAddress = `Точка: ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                document.getElementById('selected-address-text').innerText = "📍 " + selectedCdekAddress;
-            });
-    });
+    // Ускоренный запрос (ограничиваем поиск только адресом)
+    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&radius=100&fields=items.address_name&key=cab82c94-e619-42eb-9814-3361712feaf0`)
+        .then(res => res.json())
+        .then(data => {
+            let address = "Адрес не найден";
+            if (data.result && data.result.items.length > 0) {
+                address = data.result.items[0].address_name || data.result.items[0].full_name;
+            }
+            selectedCdekAddress = address;
+            document.getElementById('selected-address-text').innerText = "📍 " + address;
+        })
+        .catch(() => {
+            document.getElementById('selected-address-text').innerText = "📍 Ошибка связи. Нажмите еще раз";
+        });
+});
 }
 
 
