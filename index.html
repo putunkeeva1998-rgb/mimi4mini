@@ -389,33 +389,29 @@ function updateQuantity(idx, delta) {
 
         // --- ГЛАВНАЯ ФУНКЦИЯ ОТПРАВКИ ---
         function sendOrder() {
-    // Получаем значения из полей
     const fio = document.getElementById('fio').value.trim();
     const phone = document.getElementById('phone').value.trim();
-    const deliveryValue = document.getElementById('delivery').value; 
+    const deliveryValue = document.getElementById('delivery').value; // Важно: имя переменной
 
-    // Очистка номера: оставляем только цифры для проверки
-    const cleanPhone = phone.replace(/\D/g, "");
+    const cleanPhone = phone.replace(/\D/g, ""); // Очистка от лишних знаков
 
-    // 1. Проверка Имени
+    // Проверка Имени
     if (fio.length < 2) {
         tg.showAlert("Пожалуйста, введите корректное Имя!");
         return;
     }
 
-    // 2. Проверка Телефона (ровно 11 цифр и не "пустышка")
-    // Запрещаем ввод типа 00000000000 или 99999999999
+    // Проверка Телефона (не менее 11 цифр и защита от 000/999)
     if (cleanPhone.length < 11 || /^(\d)\1+$/.test(cleanPhone)) {
-        tg.showAlert("Введите корректный номер телефона (11 цифр)!");
+        tg.showAlert("Введите корректный номер телефона (например, 8915...)!");
         return;
     }
 
-    // 3. Формируем итоговый адрес (СДЭК или текст)
-    const finalDelivery = (deliveryValue === 'СДЭК' && selectedCdekAddress) 
+    // Исправлено: проверяем правильную переменную deliveryValue
+    const finalDelivery = (deliveryValue === 'СДЭК' && typeof selectedCdekAddress !== 'undefined' && selectedCdekAddress) 
         ? `СДЭК ПВЗ: ${selectedCdekAddress}` 
         : deliveryValue;
 
-    // 4. Расчет суммы (учитываем количество товаров)
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const orderData = {
@@ -430,10 +426,10 @@ function updateQuantity(idx, delta) {
         }
     };
 
-    // ОТПРАВКА ДАННЫХ
+    // Эта команда отправляет данные вашему Python-боту
     tg.sendData(JSON.stringify(orderData));
 
-    // Сохранение в историю и очистка
+    // Сохранение в историю (вкладка Профиль)
     let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
     savedOrders.unshift(orderData.data);
     localStorage.setItem('my_orders', JSON.stringify(savedOrders));
@@ -442,11 +438,10 @@ function updateQuantity(idx, delta) {
     cart = []; 
     renderCart();
     
-    // Переход в профиль
+    // Автопереход в профиль после заказа
     const profileBtn = document.querySelector('.nav-item i.fa-user-circle').parentElement;
     showTab('profile', profileBtn);
 }
-
         function renderOrders() {
             const container = document.getElementById('order-history');
             let savedOrders = JSON.parse(localStorage.getItem('my_orders') || '[]');
