@@ -273,19 +273,21 @@
                 
                 document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
 
-                fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&radius=100&fields=items.address_name&key=cab82c94-e619-42eb-9814-3361712feaf0`)
-                    .then(res => res.json())
-                    .then(data => {
-                        let address = "Адрес не найден";
-                        if (data.result && data.result.items.length > 0) {
-                            address = data.result.items[0].address_name || data.result.items[0].full_name;
-                        }
-                        selectedCdekAddress = address;
-                        document.getElementById('selected-address-text').innerText = "📍 " + address;
-                    })
-                    .catch(() => {
-                        document.getElementById('selected-address-text').innerText = "📍 Ошибка связи. Нажмите еще раз";
-                    });
+                // Замените fetch в вашем коде на этот:
+fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=cab82c94-e619-42eb-9814-3361712feaf0`)
+    .then(res => res.json())
+    .then(data => {
+        if (data.result && data.result.items.length > 0) {
+            // Берем самый первый (ближайший) объект из списка
+            let item = data.result.items[0];
+            let address = item.address_name || item.full_name || item.name;
+            
+            selectedCdekAddress = address;
+            document.getElementById('selected-address-text').innerText = "📍 " + address;
+        } else {
+            document.getElementById('selected-address-text').innerText = "📍 Адрес не найден, попробуйте кликнуть на здание";
+        }
+    })
             });
         } // Конец функции setupMap
 
