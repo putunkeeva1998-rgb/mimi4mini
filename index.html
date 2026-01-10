@@ -259,32 +259,32 @@
                 
                 document.getElementById('selected-address-text').innerText = "⏳ Определение адреса...";
 
-            // Запрос к Geocoder API
+            // Используем эндпоинт Geocoder API для обратного геокодирования
 fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lon=${lng}&lat=${lat}&fields=items.address_name&key=${MY_API_KEY}`)
     .then(res => {
-        if (!res.ok) {
-            // Если API вернуло 403, значит ключ не подходит для поиска
-            if (res.status === 403) throw new Error('Ключ не поддерживает Catalog API (Геокодинг)');
-            throw new Error('Ошибка сервера 2ГИС');
-        }
+        if (!res.ok) throw new Error('Ошибка сети или лимитов');
         return res.json();
     })
     .then(data => {
+        // Проверяем наличие результата в массиве items
         if (data.result && data.result.items && data.result.items.length > 0) {
             let item = data.result.items[0];
-            // Пробуем разные поля, так как API может возвращать их по-разному
+            
+            // Собираем адрес: сначала ищем наиболее точное название (дом/улица)
             let address = item.address_name || item.full_name || item.name;
             
             selectedCdekAddress = address;
             document.getElementById('selected-address-text').innerText = "📍 " + address;
+            document.getElementById('selected-address-text').classList.remove('text-pink-600');
+            document.getElementById('selected-address-text').classList.add('text-green-600');
         } else {
-            document.getElementById('selected-address-text').innerText = "📍 Точный адрес не найден";
+            document.getElementById('selected-address-text').innerText = "📍 Адрес не найден, нажмите точнее на здание";
         }
     })
     .catch(err => {
-        console.error("Ошибка 2ГИС:", err.message);
-        document.getElementById('selected-address-text').innerText = "❌ Ошибка: " + err.message;
-    });   
+        console.error(err);
+        document.getElementById('selected-address-text').innerText = "❌ Ошибка загрузки адреса";
+    });  
 
             // Геолокация
             if (navigator.geolocation) {
