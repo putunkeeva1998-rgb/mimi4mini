@@ -140,8 +140,7 @@
         const MY_API_KEY = 'cab82c94-e619-42eb-9814-3361712feaf0';
 
         function init2GIS() {
-            if (typeof mapgl === 'undefined') return;
-            if (map) return;
+            if (typeof mapgl === 'undefined' || map) return;
 
             map = new mapgl.Map('2gis-map', {
                 center: [37.6175, 55.7558],
@@ -161,7 +160,7 @@
                 
                 const statusText = document.getElementById('selected-address-text');
                 statusText.innerText = "⏳ Определение адреса...";
-                selectedCdekAddress = "pending"; // Блокируем заказ во время поиска
+                selectedCdekAddress = "pending";
 
                 const url = `https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`;
 
@@ -181,7 +180,6 @@
                         tg.HapticFeedback.impactOccurred('medium');
                     })
                     .catch(err => {
-                        console.error(err);
                         selectedCdekAddress = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
                         statusText.innerText = "📍 Выбрано (координаты)";
                     });
@@ -198,7 +196,7 @@
                 }, 300);
             } else {
                 container.classList.add('hidden');
-                selectedCdekAddress = val || ""; // Для Почты или пустоты
+                selectedCdekAddress = val || "";
             }
         }
 
@@ -296,9 +294,7 @@
 
             const finalAddress = delivery === "СДЭК" ? `СДЭК: ${selectedCdekAddress}` : "Почта России";
             const order = { 
-                fio, 
-                phone, 
-                items: [...cart], 
+                fio, phone, items: [...cart], 
                 total: cart.reduce((s, i) => s + (i.price * i.quantity), 0), 
                 address: finalAddress, 
                 date: new Date().toLocaleString() 
@@ -310,8 +306,7 @@
 
             tg.sendData(JSON.stringify({type: 'new_order', ...order}));
             tg.showAlert("Заказ отправлен! ✨");
-            cart = []; 
-            renderCart(); 
+            cart = []; renderCart(); 
             showTab('profile', document.querySelector('.fa-user-circle').parentElement);
         }
 
