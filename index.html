@@ -12,28 +12,27 @@
         :root { --pink-main: #ffeff2; --pink-accent: #f8bbd0; --pink-dark: #f06292; --text-dark: #4a4a4a; }
         body { background-color: var(--pink-main); color: var(--text-dark); font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; padding: 16px; }
+        .category-header { color: var(--pink-dark); font-weight: bold; font-size: 1.25rem; margin: 20px 0 10px 0; border-bottom: 2px solid var(--pink-accent); display: inline-block; }
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .card { background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(240, 98, 146, 0.15); display: flex; flex-direction: column; border: 1px solid var(--pink-accent); position: relative; }
         .size-btn { background: #fff; border: 1px solid var(--pink-accent); border-radius: 8px; padding: 5px; font-size: 10px; font-weight: bold; cursor: pointer; flex: 1; text-align: center; }
         .size-btn.active { background-color: var(--pink-dark) !important; color: white !important; border-color: var(--pink-dark); }
         .btn-pink { background-color: var(--pink-dark); color: white; width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; }
-        .fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 10; border: none; }
-        .fav-btn.active { color: var(--pink-dark); }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; height: 75px; background-color: #ffffff; border-top: 1px solid var(--pink-accent); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { display: flex; flex-direction: column; justify-content: center; align-items: center; color: #b0bec5; font-size: 11px; text-decoration: none; flex: 1; }
         .nav-item.active { color: var(--pink-dark); }
         .hidden { display: none; }
         #2gis-map { width: 100%; height: 300px; border-radius: 12px; margin-top: 10px; }
-        .order-card { background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--pink-dark); }
     </style>
 </head>
 <body>
 
     <div class="container" id="catalog-tab">
-        <h1 class="text-2xl font-bold mb-4 text-center" style="color: var(--pink-dark)">mimi4mini</h1>
-        <div class="product-grid">
+        <h1 class="text-3xl font-bold mb-4 text-center" style="color: var(--pink-dark)">mimi4mini</h1>
+        
+        <h2 class="category-header">Карнавальные платья</h2>
+        <div class="product-grid mb-8">
             <div class="card" id="prod-1023">
-                <button class="fav-btn" onclick="toggleFavorite('Эльза 1023', 1500, 'elsa1023.jpg', 'prod-1023')"><i class="fas fa-heart"></i></button>
                 <img src="elsa1023.jpg" class="h-40 object-cover" onerror="this.src='https://via.placeholder.com/200'">
                 <div class="p-3">
                     <h2 class="font-bold text-sm">Эльза 1023</h2>
@@ -41,31 +40,39 @@
                     <div class="flex gap-1 my-2 size-container">
                         <button class="size-btn active" onclick="selectSize(this)">100</button>
                         <button class="size-btn" onclick="selectSize(this)">110</button>
-                        <button class="size-btn" onclick="selectSize(this)">120</button>
                     </div>
                     <button class="btn-pink" onclick="addToCart('Эльза 1023', 1500, 'elsa1023.jpg', 'prod-1023')">В КОРЗИНУ</button>
                 </div>
             </div>
             <div class="card" id="prod-0425">
-                <button class="fav-btn" onclick="toggleFavorite('Эльза 0425', 1500, 'elsa0425.jpg', 'prod-0425')"><i class="fas fa-heart"></i></button>
                 <img src="elsa0425.jpg" class="h-40 object-cover" onerror="this.src='https://via.placeholder.com/200'">
                 <div class="p-3">
                     <h2 class="font-bold text-sm">Эльза 0425</h2>
                     <p class="text-pink-500 font-bold">1500 ₽</p>
                     <div class="flex gap-1 my-2 size-container">
                         <button class="size-btn active" onclick="selectSize(this)">100</button>
-                        <button class="size-btn" onclick="selectSize(this)">110</button>
                         <button class="size-btn" onclick="selectSize(this)">120</button>
                     </div>
                     <button class="btn-pink" onclick="addToCart('Эльза 0425', 1500, 'elsa0425.jpg', 'prod-0425')">В КОРЗИНУ</button>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="favorites-tab" class="container hidden">
-        <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Избранное</h1>
-        <div id="favorites-list" class="grid grid-cols-1 gap-3"></div>
+        <h2 class="category-header">Повседневные платья</h2>
+        <div class="product-grid">
+            <div class="card" id="prod-daily-1">
+                <img src="daily1.jpg" class="h-40 object-cover" onerror="this.src='https://via.placeholder.com/200'">
+                <div class="p-3">
+                    <h2 class="font-bold text-sm">Платье Повседневное</h2>
+                    <p class="text-pink-500 font-bold">1200 ₽</p>
+                    <div class="flex gap-1 my-2 size-container">
+                        <button class="size-btn active" onclick="selectSize(this)">90</button>
+                        <button class="size-btn" onclick="selectSize(this)">100</button>
+                    </div>
+                    <button class="btn-pink" onclick="addToCart('Платье Повседневное', 1200, 'daily1.jpg', 'prod-daily-1')">В КОРЗИНУ</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="cart-tab" class="container hidden">
@@ -82,30 +89,27 @@
             </select>
             <div id="map-container" class="hidden">
                 <div id="2gis-map"></div>
-                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">Кликните на карту для выбора адреса</p>
+                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">Кликните на карту</p>
             </div>
             <button class="btn-pink w-full py-4 text-lg mt-4" id="final-btn" onclick="sendOrder()">ОФОРМИТЬ</button>
         </div>
     </div>
 
     <div id="profile-tab" class="container hidden">
-        <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Профиль</h1>
+        <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Мои заказы</h1>
         <div id="orders-list"></div>
     </div>
 
     <nav class="bottom-nav">
         <a href="javascript:void(0)" class="nav-item active" onclick="showTab('catalog', this)"><i class="fas fa-store"></i>Каталог</a>
-        <a href="javascript:void(0)" class="nav-item" onclick="showTab('favorites', this)"><i class="fas fa-heart"></i>Избранное</a>
         <a href="javascript:void(0)" class="nav-item" onclick="showTab('cart', this)"><i class="fas fa-shopping-bag"></i>Корзина</a>
         <a href="javascript:void(0)" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user"></i>Профиль</a>
     </nav>
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready(); tg.expand();
-
+        tg.ready();
         let cart = JSON.parse(localStorage.getItem('mimi_cart')) || [];
-        let favorites = JSON.parse(localStorage.getItem('mimi_favs')) || [];
         let orders = JSON.parse(localStorage.getItem('mimi_orders')) || [];
         let map, marker;
         let selectedAddress = ""; 
@@ -114,25 +118,6 @@
         function selectSize(btn) {
             btn.parentElement.querySelectorAll('.size-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
-        }
-
-        function toggleFavorite(name, price, img, containerId) {
-            const size = document.querySelector(`#${containerId} .size-btn.active`).innerText;
-            const idx = favorites.findIndex(f => f.name === name && f.size === size);
-            if (idx === -1) { favorites.push({ name, price, img, size }); tg.HapticFeedback.impactOccurred('light'); }
-            else { favorites.splice(idx, 1); }
-            localStorage.setItem('mimi_favs', JSON.stringify(favorites));
-            renderFavorites();
-        }
-
-        function renderFavorites() {
-            const list = document.getElementById('favorites-list');
-            list.innerHTML = favorites.length ? favorites.map((f, i) => `
-                <div class="card flex flex-row p-3 items-center justify-between">
-                    <div class="flex items-center"><img src="${f.img}" class="w-12 h-12 object-cover rounded mr-3">
-                    <div><b class="text-sm">${f.name}</b><p class="text-xs text-pink-400">Р: ${f.size}</p></div></div>
-                    <button onclick="favorites.splice(${i},1); localStorage.setItem('mimi_favs', JSON.stringify(favorites)); renderFavorites();" class="text-red-300 p-2">✕</button>
-                </div>`).join('') : '<p class="text-center opacity-50 py-10">В избранном пока пусто 🌸</p>';
         }
 
         function addToCart(name, price, img, containerId) {
@@ -161,7 +146,7 @@
                 document.getElementById('order-form').classList.remove('hidden');
                 document.getElementById('final-btn').innerText = `ОФОРМИТЬ ЗА ${total} ₽`;
             } else {
-                list.innerHTML = '<p class="text-center opacity-50 py-10">В корзине пусто</p>';
+                list.innerHTML = '<p class="text-center opacity-50 py-10">Пусто</p>';
                 document.getElementById('order-form').classList.add('hidden');
             }
         }
@@ -175,7 +160,6 @@
             map.on('click', (e) => {
                 const { lng, lat } = e.lngLat;
                 marker.setCoordinates(e.lngLat).show();
-                document.getElementById('selected-address-text').innerText = "⏳ Определение...";
                 fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`)
                 .then(r => r.json()).then(data => {
                     const addr = data.result?.items?.[0]?.address_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
@@ -187,20 +171,14 @@
 
         function toggleDeliveryMap(val) {
             const container = document.getElementById('map-container');
-            if (["СДЭК", "Почта", "5post"].includes(val)) {
+            // Исправлено: проверяем наличие ключевых слов в выбранном значении
+            if (val.includes("СДЭК") || val.includes("Почта") || val.includes("5post")) {
                 container.classList.remove('hidden');
                 setTimeout(() => { if (!map) init2GIS(); else map.invalidateSize(); }, 300);
-            } else { container.classList.add('hidden'); selectedAddress = ""; }
-        }
-
-        function renderOrders() {
-            const list = document.getElementById('orders-list');
-            list.innerHTML = orders.length ? [...orders].reverse().map(o => `
-                <div class="order-card shadow-sm">
-                    <div class="flex justify-between font-bold text-sm mb-1"><span>Заказ от ${o.date}</span><span>${o.total}₽</span></div>
-                    <div class="text-xs text-gray-500 mb-1">${o.address}</div>
-                    <div class="text-xs">${o.items.map(i => `${i.name}(${i.size}) x${i.quantity}`).join(', ')}</div>
-                </div>`).join('') : '<p class="text-center opacity-50 py-10">История пуста</p>';
+            } else {
+                container.classList.add('hidden');
+                selectedAddress = "";
+            }
         }
 
         function showTab(tab, el) {
@@ -208,8 +186,16 @@
             document.getElementById(tab + '-tab').classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
-            if (tab === 'favorites') renderFavorites();
             if (tab === 'profile') renderOrders();
+        }
+
+        function renderOrders() {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = orders.length ? [...orders].reverse().map(o => `
+                <div class="p-3 bg-white rounded-xl mb-2 border-l-4 border-pink-500 shadow-sm">
+                    <div class="flex justify-between font-bold"><span>Заказ от ${o.date}</span><span>${o.total}₽</span></div>
+                    <div class="text-xs text-gray-500">${o.address}</div>
+                </div>`).join('') : '<p class="text-center opacity-50 py-10">История пуста</p>';
         }
 
         function sendOrder() {
