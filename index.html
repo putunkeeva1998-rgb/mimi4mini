@@ -158,15 +158,30 @@
             map = new mapgl.Map('2gis-map', { center: [37.6175, 55.7558], zoom: 12, key: MY_API_KEY });
             marker = new mapgl.Marker(map, { coordinates: [0, 0], visible: false });
             map.on('click', (e) => {
-                const { lng, lat } = e.lngLat;
-                marker.setCoordinates(e.lngLat).show();
-                fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`)
-                .then(r => r.json()).then(data => {
-                    const addr = data.result?.items?.[0]?.address_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                    selectedAddress = `[${document.getElementById('delivery').value}] ${addr}`;
-                    document.getElementById('selected-address-text').innerText = "📍 " + addr;
-                });
-            });
+    const { lng, lat } = e.lngLat;
+    marker.setCoordinates(e.lngLat).show();
+    
+    // Показываем пользователю, что запрос пошел
+    document.getElementById('selected-address-text').innerText = "⏳ Ищу адрес...";
+
+    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`)
+    .then(r => {
+        if (!r.ok) throw new Error('Ошибка сети или ключа');
+        return r.json();
+    })
+    .then(data => {
+        const addr = data.result?.items?.[0]?.address_name || data.result?.items?.[0]?.full_name || "Точный адрес не найден";
+        selectedAddress = `[${document.getElementById('delivery').value}] ${addr}`;
+        document.getElementById('selected-address-text').innerText = "📍 " + addr;
+    })
+    .catch(err => {
+        console.error(err);
+        // Если геокодер не сработал, просто записываем координаты
+        const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        selectedAddress = `[${document.getElementById('delivery').value}] Координаты: ${coords}`;
+        document.getElementById('selected-address-text').innerText = "📍 Точка выбрана (координаты)";
+    });
+});
         }
 
         function toggleDeliveryMap(val) {
