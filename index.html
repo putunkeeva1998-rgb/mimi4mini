@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="referrer" content="no-referrer-when-downgrade">
     <title>MIMI4MINI Shop</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -12,7 +13,7 @@
         :root { --pink-main: #ffeff2; --pink-accent: #f8bbd0; --pink-dark: #f06292; --text-dark: #4a4a4a; }
         body { background-color: var(--pink-main); color: var(--text-dark); font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding-bottom: 90px; }
         .container { max-width: 600px; margin: 0 auto; padding: 16px; }
-        .category-header { color: var(--pink-dark); font-weight: bold; font-size: 1.25rem; margin: 20px 0 10px 0; border-bottom: 2px solid var(--pink-accent); display: inline-block; }
+        .category-title { color: var(--pink-dark); font-weight: bold; font-size: 1.2rem; margin: 20px 0 10px; border-bottom: 2px solid var(--pink-accent); display: inline-block; }
         .product-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .card { background-color: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 12px rgba(240, 98, 146, 0.15); display: flex; flex-direction: column; border: 1px solid var(--pink-accent); position: relative; }
         .size-btn { background: #fff; border: 1px solid var(--pink-accent); border-radius: 8px; padding: 5px; font-size: 10px; font-weight: bold; cursor: pointer; flex: 1; text-align: center; }
@@ -22,16 +23,16 @@
         .nav-item { display: flex; flex-direction: column; justify-content: center; align-items: center; color: #b0bec5; font-size: 11px; text-decoration: none; flex: 1; }
         .nav-item.active { color: var(--pink-dark); }
         .hidden { display: none; }
-        #2gis-map { width: 100%; height: 300px; border-radius: 12px; margin-top: 10px; }
+        #2gis-map { width: 100%; height: 300px; border-radius: 12px; margin-top: 10px; border: 1px solid var(--pink-accent); }
     </style>
 </head>
 <body>
 
     <div class="container" id="catalog-tab">
-        <h1 class="text-3xl font-bold mb-4 text-center" style="color: var(--pink-dark)">mimi4mini</h1>
-        
-        <h2 class="category-header">Карнавальные платья</h2>
-        <div class="product-grid mb-8">
+        <h1 class="text-2xl font-bold mb-4 text-center" style="color: var(--pink-dark)">mimi4mini</h1>
+
+        <h2 class="category-title">Карнавальные платья</h2>
+        <div class="product-grid mb-6">
             <div class="card" id="prod-1023">
                 <img src="elsa1023.jpg" class="h-40 object-cover" onerror="this.src='https://via.placeholder.com/200'">
                 <div class="p-3">
@@ -58,18 +59,18 @@
             </div>
         </div>
 
-        <h2 class="category-header">Повседневные платья</h2>
+        <h2 class="category-title">Повседневные платья</h2>
         <div class="product-grid">
-            <div class="card" id="prod-daily-1">
-                <img src="daily1.jpg" class="h-40 object-cover" onerror="this.src='https://via.placeholder.com/200'">
+            <div class="card" id="prod-daily">
+                <img src="elsa1.jpg" class="h-40 object-cover" onerror="this.src='https://via.placeholder.com/200'">
                 <div class="p-3">
-                    <h2 class="font-bold text-sm">Платье Повседневное</h2>
+                    <h2 class="font-bold text-sm">Мими Daily</h2>
                     <p class="text-pink-500 font-bold">1200 ₽</p>
                     <div class="flex gap-1 my-2 size-container">
                         <button class="size-btn active" onclick="selectSize(this)">90</button>
                         <button class="size-btn" onclick="selectSize(this)">100</button>
                     </div>
-                    <button class="btn-pink" onclick="addToCart('Платье Повседневное', 1200, 'daily1.jpg', 'prod-daily-1')">В КОРЗИНУ</button>
+                    <button class="btn-pink" onclick="addToCart('Мими Daily', 1200, 'elsa1.jpg', 'prod-daily')">В КОРЗИНУ</button>
                 </div>
             </div>
         </div>
@@ -86,17 +87,18 @@
                 <option value="СДЭК">СДЭК (карта)</option>
                 <option value="Почта">Почта России (карта)</option>
                 <option value="5post">5post (карта)</option>
+                <option value="Самовывоз">Самовывоз</option>
             </select>
             <div id="map-container" class="hidden">
                 <div id="2gis-map"></div>
-                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">Кликните на карту</p>
+                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">📍 Кликните на карту для выбора точки</p>
             </div>
             <button class="btn-pink w-full py-4 text-lg mt-4" id="final-btn" onclick="sendOrder()">ОФОРМИТЬ</button>
         </div>
     </div>
 
     <div id="profile-tab" class="container hidden">
-        <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Мои заказы</h1>
+        <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Профиль</h1>
         <div id="orders-list"></div>
     </div>
 
@@ -122,9 +124,9 @@
 
         function addToCart(name, price, img, containerId) {
             const size = document.querySelector(`#${containerId} .size-btn.active`).innerText;
+            const item = { name, price, img, size, quantity: 1 };
             const existing = cart.find(c => c.name === name && c.size === size);
-            if (existing) existing.quantity++;
-            else cart.push({ name, price, img, size, quantity: 1 });
+            if (existing) existing.quantity++; else cart.push(item);
             tg.HapticFeedback.notificationOccurred('success');
             renderCart();
         }
@@ -136,63 +138,61 @@
             if (cart.length > 0) {
                 list.innerHTML = cart.map((item, i) => `
                     <div class="p-3 bg-white rounded-xl mb-2 border flex justify-between items-center">
-                        <div><b>${item.name} (${item.size})</b><br><small>${item.price}₽ x ${item.quantity}</small></div>
+                        <div><b>${item.name} (${item.size})</b><br><small>${item.price}₽</small></div>
                         <div class="flex items-center gap-2">
                             <button onclick="changeQty(${i},-1)" class="w-8 h-8 bg-pink-100 rounded-lg">-</button>
-                            <span class="w-4 text-center">${item.quantity}</span>
+                            <span>${item.quantity}</span>
                             <button onclick="changeQty(${i},1)" class="w-8 h-8 bg-pink-100 rounded-lg">+</button>
                         </div>
                     </div>`).join('');
                 document.getElementById('order-form').classList.remove('hidden');
                 document.getElementById('final-btn').innerText = `ОФОРМИТЬ ЗА ${total} ₽`;
             } else {
-                list.innerHTML = '<p class="text-center opacity-50 py-10">Пусто</p>';
+                list.innerHTML = '<p class="text-center opacity-50 py-10">Корзина пуста</p>';
                 document.getElementById('order-form').classList.add('hidden');
             }
         }
 
-        function changeQty(i, d) { cart[i].quantity += d; if (cart[i].quantity<=0) cart.splice(i,1); renderCart(); }
+        function changeQty(i, d) { cart[i].quantity += d; if (cart[i].quantity <= 0) cart.splice(i,1); renderCart(); }
 
         function init2GIS() {
             if (map) return;
             map = new mapgl.Map('2gis-map', { center: [37.6175, 55.7558], zoom: 12, key: MY_API_KEY });
             marker = new mapgl.Marker(map, { coordinates: [0, 0], visible: false });
+            
             map.on('click', (e) => {
-    const { lng, lat } = e.lngLat;
-    marker.setCoordinates(e.lngLat).show();
-    
-    // Показываем пользователю, что запрос пошел
-    document.getElementById('selected-address-text').innerText = "⏳ Ищу адрес...";
+                const { lng, lat } = e.lngLat;
+                marker.setCoordinates(e.lngLat).show();
+                
+                const coords = `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+                selectedAddress = `Координаты: ${coords}`;
+                document.getElementById('selected-address-text').innerText = "⌛ Определение адреса...";
 
-    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`)
-    .then(r => {
-        if (!r.ok) throw new Error('Ошибка сети или ключа');
-        return r.json();
-    })
-    .then(data => {
-        const addr = data.result?.items?.[0]?.address_name || data.result?.items?.[0]?.full_name || "Точный адрес не найден";
-        selectedAddress = `[${document.getElementById('delivery').value}] ${addr}`;
-        document.getElementById('selected-address-text').innerText = "📍 " + addr;
-    })
-    .catch(err => {
-        console.error(err);
-        // Если геокодер не сработал, просто записываем координаты
-        const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-        selectedAddress = `[${document.getElementById('delivery').value}] Координаты: ${coords}`;
-        document.getElementById('selected-address-text').innerText = "📍 Точка выбрана (координаты)";
-    });
-});
+                fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`)
+                .then(r => r.json())
+                .then(data => {
+                    const addr = data.result?.items?.[0]?.address_name || data.result?.items?.[0]?.full_name;
+                    if (addr) {
+                        selectedAddress = `[${document.getElementById('delivery').value}] ${addr}`;
+                        document.getElementById('selected-address-text').innerText = "📍 " + addr;
+                    } else {
+                        document.getElementById('selected-address-text').innerText = "📍 Точка: " + coords;
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('selected-address-text').innerText = "📍 Выбрано (коорд): " + coords;
+                });
+            });
         }
 
         function toggleDeliveryMap(val) {
             const container = document.getElementById('map-container');
-            // Исправлено: проверяем наличие ключевых слов в выбранном значении
             if (val.includes("СДЭК") || val.includes("Почта") || val.includes("5post")) {
                 container.classList.remove('hidden');
                 setTimeout(() => { if (!map) init2GIS(); else map.invalidateSize(); }, 300);
             } else {
                 container.classList.add('hidden');
-                selectedAddress = "";
+                selectedAddress = val === "Самовывоз" ? "Самовывоз из магазина" : "";
             }
         }
 
@@ -207,19 +207,29 @@
         function renderOrders() {
             const list = document.getElementById('orders-list');
             list.innerHTML = orders.length ? [...orders].reverse().map(o => `
-                <div class="p-3 bg-white rounded-xl mb-2 border-l-4 border-pink-500 shadow-sm">
-                    <div class="flex justify-between font-bold"><span>Заказ от ${o.date}</span><span>${o.total}₽</span></div>
-                    <div class="text-xs text-gray-500">${o.address}</div>
-                </div>`).join('') : '<p class="text-center opacity-50 py-10">История пуста</p>';
+                <div class="bg-white p-3 rounded-xl mb-2 border shadow-sm">
+                    <div class="flex justify-between font-bold"><span>Заказ ${o.date}</span><span>${o.total}₽</span></div>
+                    <div class="text-xs text-gray-400 mt-1">${o.address}</div>
+                </div>`).join('') : '<p class="text-center opacity-50 py-10">Истории заказов пока нет</p>';
         }
 
         function sendOrder() {
             const fio = document.getElementById('fio').value, phone = document.getElementById('phone').value;
-            if (!fio || !phone || !selectedAddress) return tg.showAlert("Заполните всё!");
-            const order = { date: new Date().toLocaleDateString(), address: selectedAddress, items: [...cart], total: cart.reduce((s,i)=>s+i.price*i.quantity,0) };
-            orders.push(order); localStorage.setItem('mimi_orders', JSON.stringify(orders));
+            if (!fio || !phone || !selectedAddress) return tg.showAlert("Заполните имя, телефон и выберите адрес на карте!");
+            
+            const order = { 
+                date: new Date().toLocaleDateString(), 
+                address: selectedAddress, 
+                items: [...cart], 
+                total: cart.reduce((s,i)=>s+i.price*i.quantity,0) 
+            };
+            
+            orders.push(order); 
+            localStorage.setItem('mimi_orders', JSON.stringify(orders));
             tg.sendData(JSON.stringify(order));
-            cart = []; localStorage.removeItem('mimi_cart'); tg.close();
+            cart = []; 
+            localStorage.removeItem('mimi_cart'); 
+            tg.close();
         }
 
         renderCart();
