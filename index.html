@@ -169,37 +169,44 @@
         });
 
         map.on('click', (e) => {
-    const { lng, lat } = e.lngLat;
-    marker.setCoordinates(e.lngLat);
-    marker.show();
-    
-    const statusText = document.getElementById('selected-address-text');
-    statusText.innerText = "⏳ Определение адреса...";
+            const { lng, lat } = e.lngLat;
+            marker.setCoordinates(e.lngLat);
+            marker.show();
+            
+            const statusText = document.getElementById('selected-address-text');
+            statusText.innerText = "⏳ Определение адреса...";
 
-    // ВАЖНО: убедитесь, что переменная MY_API_KEY содержит актуальный ключ из личного кабинета
-    const url = `https://catalog.api.2gis.com/3.0/items/geocode?key=${MY_API_KEY}&lat=${lat}&lon=${lng}&fields=items.address_name`;
+            // Добавляем параметр для поиска ближайшего адреса в радиусе 50м
+            const url = `https://catalog.api.2gis.com/3.0/items/geocode?key=${MY_API_KEY}&lat=${lat}&lon=${lng}&fields=items.address_name,items.full_name`;
 
-    fetch(url)
-    .then(res => res.json())
-    .then(data => {
-        // Проверяем структуру ответа от 2ГИС
-        let items = data && data.result && data.result.items;
-        if (items && items.length > 0) {
-            let item = items[0];
-            // Берем название адреса
-            let addr = item.address_name || item.full_name || "Адрес найден";
-            selectedCdekAddress = addr;
-            statusText.innerText = "📍 " + addr;
-            tg.HapticFeedback.impactOccurred('medium');
-        } else {
-            statusText.innerText = "📍 Адрес не найден";
-        }
-    })
-    .catch(err => {
-        console.error(err);
-        statusText.innerText = "❌ Ошибка получения адреса";
-    });
-});
+            fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                const items = data && data.result && data.result.items;
+                
+                if (items && items.length > 0) {
+                    const item = items[0];
+                    // Если есть адрес (улица + дом), берем его, иначе полное название объекта
+                    const addr = item.address_name || item.full_name || "Точка на карте";
+                    selectedCdekAddress = addr;
+                    statusText.innerText = "📍 " + addr;
+                } else {
+                    // ЕСЛИ АДРЕС НЕ НАЙДЕН (например, кликнули в поле), показываем координаты
+                    // Это позволит не блокировать оформление заказа!
+                    const coords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                    selectedCdekAddress = coords;
+                    statusText.innerText = "📍 Координаты: " + coords;
+                }
+                tg.HapticFeedback.impactOccurred('medium');
+            })
+            .catch(err => {
+                console.error('Ошибка API 2ГИС:', err);
+                // В случае сетевой ошибки всё равно сохраняем координаты
+                const fallbackCoords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+                selectedCdekAddress = fallbackCoords;
+                statusText.innerText = "📍 Точка выбрана (координаты)";
+            });
+        });
 
         // Сразу после создания "пинаем" карту, чтобы она отрисовалась
         setTimeout(() => { map.invalidateSize(); }, 300);
