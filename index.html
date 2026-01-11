@@ -20,10 +20,11 @@
         .fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 10; border: none; }
         .fav-btn.active { color: var(--pink-dark); }
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; height: 75px; background-color: #ffffff; border-top: 1px solid var(--pink-accent); z-index: 2000; }
-        .nav-item { display: flex; flex-direction: column; justify-content: center; align-items: center; color: #b0bec5; font-size: 12px; text-decoration: none; flex: 1; }
+        .nav-item { display: flex; flex-direction: column; justify-content: center; align-items: center; color: #b0bec5; font-size: 11px; text-decoration: none; flex: 1; }
         .nav-item.active { color: var(--pink-dark); }
         .hidden { display: none; }
         #2gis-map { width: 100%; height: 300px; border-radius: 12px; margin-top: 10px; }
+        .order-card { background: white; padding: 12px; border-radius: 15px; margin-bottom: 10px; border-left: 4px solid var(--pink-dark); }
     </style>
 </head>
 <body>
@@ -75,22 +76,31 @@
             <input type="tel" id="phone" placeholder="Телефон" class="w-full p-3 mb-2 border rounded-xl">
             <select id="delivery" class="w-full p-3 mb-2 border rounded-xl" onchange="toggleDeliveryMap(this.value)">
                 <option value="">Способ доставки</option>
-                <option value="СДЭК">СДЭК (выбор на карте)</option>
-                <option value="Почта">Почта России (выбор на карте)</option>
-                <option value="5post">5post (выбор на карте)</option>
+                <option value="СДЭК">СДЭК (карта)</option>
+                <option value="Почта">Почта России (карта)</option>
+                <option value="5post">5post (карта)</option>
             </select>
             <div id="cdek-map-container" class="hidden">
                 <div id="2gis-map"></div>
-                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">Кликните на карту для выбора адреса</p>
+                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">Кликните на карту</p>
             </div>
             <button class="btn-pink w-full py-4 text-lg mt-4" id="final-btn" onclick="sendOrder()">ОФОРМИТЬ</button>
         </div>
+    </div>
+
+    <div id="profile-tab" class="container hidden">
+        <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Профиль</h1>
+        <div class="bg-white p-4 rounded-2xl mb-4 shadow-sm">
+            <p class="text-gray-500">История ваших заказов сохраняется здесь автоматически.</p>
+        </div>
+        <div id="orders-list"></div>
     </div>
 
     <nav class="bottom-nav">
         <a href="javascript:void(0)" class="nav-item active" onclick="showTab('catalog', this)"><i class="fas fa-store"></i>Каталог</a>
         <a href="javascript:void(0)" class="nav-item" onclick="showTab('favorites', this)"><i class="fas fa-heart"></i>Избранное</a>
         <a href="javascript:void(0)" class="nav-item" onclick="showTab('cart', this)"><i class="fas fa-shopping-bag"></i>Корзина</a>
+        <a href="javascript:void(0)" class="nav-item" onclick="showTab('profile', this)"><i class="fas fa-user"></i>Профиль</a>
     </nav>
 
     <script>
@@ -100,6 +110,7 @@
 
         let cart = JSON.parse(localStorage.getItem('mimi_cart')) || [];
         let favorites = JSON.parse(localStorage.getItem('mimi_favs')) || [];
+        let orders = JSON.parse(localStorage.getItem('mimi_orders')) || [];
         let map, marker;
         let selectedAddress = ""; 
         const MY_API_KEY = 'cab82c94-e619-42eb-9814-3361712feaf0';
@@ -128,27 +139,19 @@
                 <div class="card flex flex-row p-3 items-center justify-between w-full">
                     <div class="flex items-center">
                         <img src="${f.img}" class="w-12 h-12 object-cover rounded mr-3">
-                        <div><b class="text-sm">${f.name}</b><p class="text-xs text-pink-400">Размер: ${f.size}</p></div>
+                        <div><b class="text-sm">${f.name}</b><p class="text-xs text-pink-400">Р: ${f.size}</p></div>
                     </div>
                     <button onclick="removeFav(${i})" class="text-red-300 p-2"><i class="fas fa-trash"></i></button>
-                </div>
-            `).join('') : '<p class="text-center opacity-50 py-10 w-full">В избранном пока пусто 🌸</p>';
+                </div>`).join('') : '<p class="text-center opacity-50 py-10 w-full">Пусто 🌸</p>';
         }
 
-        function removeFav(i) { 
-            favorites.splice(i, 1); 
-            localStorage.setItem('mimi_favs', JSON.stringify(favorites)); 
-            renderFavorites(); 
-        }
+        function removeFav(i) { favorites.splice(i, 1); localStorage.setItem('mimi_favs', JSON.stringify(favorites)); renderFavorites(); }
 
         function addToCart(name, price, img, containerId) {
             const size = document.querySelector(`#${containerId} .size-btn.active`).innerText;
             const existing = cart.find(c => c.name === name && c.size === size);
-            if (existing) {
-                existing.quantity++;
-            } else {
-                cart.push({ name, price, img, size, quantity: 1 });
-            }
+            if (existing) existing.quantity++;
+            else cart.push({ name, price, img, size, quantity: 1 });
             tg.HapticFeedback.notificationOccurred('success');
             renderCart();
         }
@@ -160,7 +163,7 @@
             if (cart.length > 0) {
                 list.innerHTML = cart.map((item, i) => `
                     <div class="p-3 bg-white rounded-xl mb-2 border flex justify-between items-center">
-                        <div><b>${item.name} (р. ${item.size})</b><br><small>${item.price} ₽ x ${item.quantity}</small></div>
+                        <div><b>${item.name} (${item.size})</b><br><small>${item.price}₽ x ${item.quantity}</small></div>
                         <div class="flex items-center gap-2">
                             <button onclick="changeQty(${i}, -1)" class="w-8 h-8 bg-pink-100 rounded-lg font-bold">-</button>
                             <span class="w-4 text-center">${item.quantity}</span>
@@ -171,7 +174,7 @@
                 document.getElementById('order-form').classList.remove('hidden');
                 document.getElementById('final-btn').innerText = `ОФОРМИТЬ ЗА ${total} ₽`;
             } else {
-                list.innerHTML = '<p class="text-center opacity-50 py-10">В корзине пусто</p>';
+                list.innerHTML = '<p class="text-center opacity-50 py-10">Пусто</p>';
                 document.getElementById('order-form').classList.add('hidden');
             }
         }
@@ -184,51 +187,44 @@
 
         function init2GIS() {
             if (map) return;
-            map = new mapgl.Map('2gis-map', {
-                center: [37.6175, 55.7558],
-                zoom: 12,
-                key: MY_API_KEY
-            });
+            map = new mapgl.Map('2gis-map', { center: [37.6175, 55.7558], zoom: 12, key: MY_API_KEY });
             marker = new mapgl.Marker(map, { coordinates: [0, 0], visible: false });
             map.on('click', (e) => {
                 const { lng, lat } = e.lngLat;
                 marker.setCoordinates(e.lngLat).show();
-                const statusText = document.getElementById('selected-address-text');
-                statusText.innerText = "⏳ Определение адреса...";
+                document.getElementById('selected-address-text').innerText = "⏳ Определение...";
                 fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`)
-                    .then(res => res.json())
-                    .then(data => {
+                    .then(res => res.json()).then(data => {
+                        const addr = data.result?.items?.[0]?.address_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
                         const method = document.getElementById('delivery').value;
-                        const addr = data.result?.items?.[0]?.address_name || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
                         selectedAddress = `[${method}] ${addr}`;
-                        statusText.innerText = "📍 " + addr;
+                        document.getElementById('selected-address-text').innerText = "📍 " + addr;
                         tg.HapticFeedback.impactOccurred('medium');
-                    })
-                    .catch(() => {
-                        const method = document.getElementById('delivery').value;
-                        selectedAddress = `[${method}] ${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-                        statusText.innerText = "📍 Точка выбрана";
                     });
             });
         }
 
         function toggleDeliveryMap(val) {
             const container = document.getElementById('cdek-map-container');
-            const statusText = document.getElementById('selected-address-text');
-            
-            // Если выбран СДЭК, Почта или 5post — показываем карту
-            if (val === "СДЭК" || val === "Почта" || val === "5post") {
-                selectedAddress = ""; 
-                statusText.innerText = `Выберите отделение ${val} на карте`;
-                container.classList.remove('hidden');
-                setTimeout(() => {
-                    if (!map) init2GIS();
-                    else map.invalidateSize();
-                }, 300);
-            } else {
-                container.classList.add('hidden');
+            if (["СДЭК", "Почта", "5post"].includes(val)) {
                 selectedAddress = "";
-            }
+                document.getElementById('selected-address-text').innerText = `Выберите точку ${val} на карте`;
+                container.classList.remove('hidden');
+                setTimeout(() => { if (!map) init2GIS(); else map.invalidateSize(); }, 300);
+            } else { container.classList.add('hidden'); selectedAddress = ""; }
+        }
+
+        function renderOrders() {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = orders.length ? orders.reverse().map(o => `
+                <div class="order-card shadow-sm">
+                    <div class="flex justify-between font-bold text-sm mb-1">
+                        <span>Заказ от ${o.date}</span>
+                        <span class="text-pink-500">${o.total} ₽</span>
+                    </div>
+                    <div class="text-xs text-gray-500 mb-2">${o.address}</div>
+                    <div class="text-xs">${o.items.map(i => `${i.name}(${i.size}) x${i.quantity}`).join(', ')}</div>
+                </div>`).join('') : '<p class="text-center opacity-50 py-10">Заказов пока нет</p>';
         }
 
         function showTab(tab, el) {
@@ -238,14 +234,27 @@
             el.classList.add('active');
             if (tab === 'favorites') renderFavorites();
             if (tab === 'cart') renderCart();
+            if (tab === 'profile') renderOrders();
         }
 
         function sendOrder() {
             const fio = document.getElementById('fio').value;
             const phone = document.getElementById('phone').value;
-            if (!fio || !phone || !selectedAddress) return tg.showAlert("Заполните форму и выберите точку на карте!");
-            const orderData = { type: 'order', fio, phone, address: selectedAddress, items: cart };
-            tg.sendData(JSON.stringify(orderData));
+            if (!fio || !phone || !selectedAddress) return tg.showAlert("Заполните все данные!");
+            
+            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            const orderData = {
+                date: new Date().toLocaleDateString(),
+                fio, phone, address: selectedAddress,
+                items: [...cart], total
+            };
+
+            // Сохраняем в историю
+            orders.push(orderData);
+            localStorage.setItem('mimi_orders', JSON.stringify(orders));
+
+            tg.sendData(JSON.stringify({ type: 'order', ...orderData }));
+            
             cart = [];
             localStorage.removeItem('mimi_cart');
             tg.close();
