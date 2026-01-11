@@ -205,6 +205,7 @@
                 const fallbackCoords = `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
                 selectedCdekAddress = fallbackCoords;
                 statusText.innerText = "📍 Точка выбрана (координаты)";
+                statusText.innerText = "❌ Ошибка: " + err.message;
             });
         });
 
