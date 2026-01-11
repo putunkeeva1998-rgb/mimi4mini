@@ -19,7 +19,7 @@
         .btn-pink { background-color: var(--pink-dark); color: white; width: 100%; padding: 12px; border-radius: 12px; font-weight: bold; border: none; cursor: pointer; }
         .fav-btn { position: absolute; top: 10px; right: 10px; background: rgba(255,255,255,0.9); border-radius: 50%; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; color: #ccc; z-index: 10; border: none; }
         .fav-btn.active { color: var(--pink-dark); }
-        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; height: 75px; background-color: #ffffff; border-top: 1px solid var(--pink-accent); z-index: 2000; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; display: flex; justify-content: space-around; height: 75px; background-color: #ffffff; border-top: 1px solid var(--pink-accent); z-index: 2000; padding-bottom: env(safe-area-inset-bottom); }
         .nav-item { display: flex; flex-direction: column; justify-content: center; align-items: center; color: #b0bec5; font-size: 11px; text-decoration: none; flex: 1; }
         .nav-item.active { color: var(--pink-dark); }
         .hidden { display: none; }
@@ -80,9 +80,9 @@
                 <option value="Почта">Почта России (карта)</option>
                 <option value="5post">5post (карта)</option>
             </select>
-            <div id="cdek-map-container" class="hidden">
+            <div id="map-container" class="hidden">
                 <div id="2gis-map"></div>
-                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">Кликните на карту</p>
+                <p id="selected-address-text" class="text-center text-pink-500 font-bold p-2 text-sm">Кликните на карту для выбора адреса</p>
             </div>
             <button class="btn-pink w-full py-4 text-lg mt-4" id="final-btn" onclick="sendOrder()">ОФОРМИТЬ</button>
         </div>
@@ -90,9 +90,6 @@
 
     <div id="profile-tab" class="container hidden">
         <h1 class="text-2xl font-bold mb-4" style="color: var(--pink-dark)">Профиль</h1>
-        <div class="bg-white p-4 rounded-2xl mb-4 shadow-sm">
-            <p class="text-gray-500">История ваших заказов сохраняется здесь автоматически.</p>
-        </div>
         <div id="orders-list"></div>
     </div>
 
@@ -105,8 +102,7 @@
 
     <script>
         const tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
+        tg.ready(); tg.expand();
 
         let cart = JSON.parse(localStorage.getItem('mimi_cart')) || [];
         let favorites = JSON.parse(localStorage.getItem('mimi_favs')) || [];
@@ -123,12 +119,8 @@
         function toggleFavorite(name, price, img, containerId) {
             const size = document.querySelector(`#${containerId} .size-btn.active`).innerText;
             const idx = favorites.findIndex(f => f.name === name && f.size === size);
-            if (idx === -1) {
-                favorites.push({ name, price, img, size });
-                tg.HapticFeedback.impactOccurred('light');
-            } else {
-                favorites.splice(idx, 1);
-            }
+            if (idx === -1) { favorites.push({ name, price, img, size }); tg.HapticFeedback.impactOccurred('light'); }
+            else { favorites.splice(idx, 1); }
             localStorage.setItem('mimi_favs', JSON.stringify(favorites));
             renderFavorites();
         }
@@ -136,16 +128,12 @@
         function renderFavorites() {
             const list = document.getElementById('favorites-list');
             list.innerHTML = favorites.length ? favorites.map((f, i) => `
-                <div class="card flex flex-row p-3 items-center justify-between w-full">
-                    <div class="flex items-center">
-                        <img src="${f.img}" class="w-12 h-12 object-cover rounded mr-3">
-                        <div><b class="text-sm">${f.name}</b><p class="text-xs text-pink-400">Р: ${f.size}</p></div>
-                    </div>
-                    <button onclick="removeFav(${i})" class="text-red-300 p-2"><i class="fas fa-trash"></i></button>
-                </div>`).join('') : '<p class="text-center opacity-50 py-10 w-full">Пусто 🌸</p>';
+                <div class="card flex flex-row p-3 items-center justify-between">
+                    <div class="flex items-center"><img src="${f.img}" class="w-12 h-12 object-cover rounded mr-3">
+                    <div><b class="text-sm">${f.name}</b><p class="text-xs text-pink-400">Р: ${f.size}</p></div></div>
+                    <button onclick="favorites.splice(${i},1); localStorage.setItem('mimi_favs', JSON.stringify(favorites)); renderFavorites();" class="text-red-300 p-2">✕</button>
+                </div>`).join('') : '<p class="text-center opacity-50 py-10">В избранном пока пусто 🌸</p>';
         }
-
-        function removeFav(i) { favorites.splice(i, 1); localStorage.setItem('mimi_favs', JSON.stringify(favorites)); renderFavorites(); }
 
         function addToCart(name, price, img, containerId) {
             const size = document.querySelector(`#${containerId} .size-btn.active`).innerText;
@@ -165,25 +153,20 @@
                     <div class="p-3 bg-white rounded-xl mb-2 border flex justify-between items-center">
                         <div><b>${item.name} (${item.size})</b><br><small>${item.price}₽ x ${item.quantity}</small></div>
                         <div class="flex items-center gap-2">
-                            <button onclick="changeQty(${i}, -1)" class="w-8 h-8 bg-pink-100 rounded-lg font-bold">-</button>
+                            <button onclick="changeQty(${i},-1)" class="w-8 h-8 bg-pink-100 rounded-lg">-</button>
                             <span class="w-4 text-center">${item.quantity}</span>
-                            <button onclick="changeQty(${i}, 1)" class="w-8 h-8 bg-pink-100 rounded-lg font-bold">+</button>
-                            <button onclick="cart.splice(${i}, 1); renderCart();" class="ml-2 text-red-300">✕</button>
+                            <button onclick="changeQty(${i},1)" class="w-8 h-8 bg-pink-100 rounded-lg">+</button>
                         </div>
                     </div>`).join('');
                 document.getElementById('order-form').classList.remove('hidden');
                 document.getElementById('final-btn').innerText = `ОФОРМИТЬ ЗА ${total} ₽`;
             } else {
-                list.innerHTML = '<p class="text-center opacity-50 py-10">Пусто</p>';
+                list.innerHTML = '<p class="text-center opacity-50 py-10">В корзине пусто</p>';
                 document.getElementById('order-form').classList.add('hidden');
             }
         }
 
-        function changeQty(i, delta) {
-            cart[i].quantity += delta;
-            if (cart[i].quantity <= 0) cart.splice(i, 1);
-            renderCart();
-        }
+        function changeQty(i, d) { cart[i].quantity += d; if (cart[i].quantity<=0) cart.splice(i,1); renderCart(); }
 
         function init2GIS() {
             if (map) return;
@@ -194,21 +177,17 @@
                 marker.setCoordinates(e.lngLat).show();
                 document.getElementById('selected-address-text').innerText = "⏳ Определение...";
                 fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address_name&key=${MY_API_KEY}`)
-                    .then(res => res.json()).then(data => {
-                        const addr = data.result?.items?.[0]?.address_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                        const method = document.getElementById('delivery').value;
-                        selectedAddress = `[${method}] ${addr}`;
-                        document.getElementById('selected-address-text').innerText = "📍 " + addr;
-                        tg.HapticFeedback.impactOccurred('medium');
-                    });
+                .then(r => r.json()).then(data => {
+                    const addr = data.result?.items?.[0]?.address_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    selectedAddress = `[${document.getElementById('delivery').value}] ${addr}`;
+                    document.getElementById('selected-address-text').innerText = "📍 " + addr;
+                });
             });
         }
 
         function toggleDeliveryMap(val) {
-            const container = document.getElementById('cdek-map-container');
+            const container = document.getElementById('map-container');
             if (["СДЭК", "Почта", "5post"].includes(val)) {
-                selectedAddress = "";
-                document.getElementById('selected-address-text').innerText = `Выберите точку ${val} на карте`;
                 container.classList.remove('hidden');
                 setTimeout(() => { if (!map) init2GIS(); else map.invalidateSize(); }, 300);
             } else { container.classList.add('hidden'); selectedAddress = ""; }
@@ -216,15 +195,12 @@
 
         function renderOrders() {
             const list = document.getElementById('orders-list');
-            list.innerHTML = orders.length ? orders.reverse().map(o => `
+            list.innerHTML = orders.length ? [...orders].reverse().map(o => `
                 <div class="order-card shadow-sm">
-                    <div class="flex justify-between font-bold text-sm mb-1">
-                        <span>Заказ от ${o.date}</span>
-                        <span class="text-pink-500">${o.total} ₽</span>
-                    </div>
-                    <div class="text-xs text-gray-500 mb-2">${o.address}</div>
+                    <div class="flex justify-between font-bold text-sm mb-1"><span>Заказ от ${o.date}</span><span>${o.total}₽</span></div>
+                    <div class="text-xs text-gray-500 mb-1">${o.address}</div>
                     <div class="text-xs">${o.items.map(i => `${i.name}(${i.size}) x${i.quantity}`).join(', ')}</div>
-                </div>`).join('') : '<p class="text-center opacity-50 py-10">Заказов пока нет</p>';
+                </div>`).join('') : '<p class="text-center opacity-50 py-10">История пуста</p>';
         }
 
         function showTab(tab, el) {
@@ -233,31 +209,16 @@
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             el.classList.add('active');
             if (tab === 'favorites') renderFavorites();
-            if (tab === 'cart') renderCart();
             if (tab === 'profile') renderOrders();
         }
 
         function sendOrder() {
-            const fio = document.getElementById('fio').value;
-            const phone = document.getElementById('phone').value;
-            if (!fio || !phone || !selectedAddress) return tg.showAlert("Заполните все данные!");
-            
-            const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-            const orderData = {
-                date: new Date().toLocaleDateString(),
-                fio, phone, address: selectedAddress,
-                items: [...cart], total
-            };
-
-            // Сохраняем в историю
-            orders.push(orderData);
-            localStorage.setItem('mimi_orders', JSON.stringify(orders));
-
-            tg.sendData(JSON.stringify({ type: 'order', ...orderData }));
-            
-            cart = [];
-            localStorage.removeItem('mimi_cart');
-            tg.close();
+            const fio = document.getElementById('fio').value, phone = document.getElementById('phone').value;
+            if (!fio || !phone || !selectedAddress) return tg.showAlert("Заполните всё!");
+            const order = { date: new Date().toLocaleDateString(), address: selectedAddress, items: [...cart], total: cart.reduce((s,i)=>s+i.price*i.quantity,0) };
+            orders.push(order); localStorage.setItem('mimi_orders', JSON.stringify(orders));
+            tg.sendData(JSON.stringify(order));
+            cart = []; localStorage.removeItem('mimi_cart'); tg.close();
         }
 
         renderCart();
