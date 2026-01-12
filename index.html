@@ -214,7 +214,7 @@
                     <input class="input-c" v-model="form.name" placeholder="Ваше имя" style="margin-bottom:10px;">
                     <input class="input-c" v-model="form.phone" placeholder="Номер телефона" type="tel" style="margin-bottom:15px;">
                     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                        <button v-for="d in ['СДЭК', 'Почта', 'Самовывоз']" @click="deliv = d; vibrate(); initMap()" :class="['cat-tab', deliv === d ? 'active' : '']" style="flex:1;">{{d}}</button>
+                        <button v-for="d in ['СДЭК', 'Почта', '5post']" @click="deliv = d; vibrate(); initMap()" :class="['cat-tab', deliv === d ? 'active' : '']" style="flex:1;">{{d}}</button>
                     </div>
                     <div v-show="deliv">
                         <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600;">📍 {{address || 'Укажите адрес на карте'}}</div>
@@ -344,14 +344,15 @@
             send() {
                 this.vibrate();
                 const now = new Date();
-const dateStr = now.getFullYear().toString().slice(-2) + 
+const dateStr = now.getDate().toString().padStart(2, '0') + 
                 (now.getMonth() + 1).toString().padStart(2, '0') + 
-                now.getDate().toString().padStart(2, '0');
-const randomNum = Math.floor(10000 + Math.random() * 90000); // 4 случайные цифры
+                now.getFullYear().toString().slice(-2);
+
+const randomNum = Math.floor(10000 + Math.random() * 90000); 
 
 const orderData = {
-    // Формат будет: MIMI-260113-4821 (ГодМесяцДень-Рандом)
-    order_id: `MIMI-${dateStr}-${randomNum}`, 
+    // ВАЖНО: используй обратные кавычки ` (клавиша под Esc)
+    order_id: `${dateStr}-${randomNum}`, 
     user: this.form,
     cart: this.cart,
     total: this.total,
