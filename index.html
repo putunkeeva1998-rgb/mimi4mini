@@ -343,14 +343,21 @@
             },
             send() {
                 this.vibrate();
-                const orderData = {
-                    order_id: `MIMI-${Date.now().toString().slice(-6)}`,
-                    user: this.form,
-                    cart: this.cart,
-                    total: this.total,
-                    address: this.address,
-                    delivery: this.deliv
-                };
+                const now = new Date();
+const dateStr = now.getFullYear().toString().slice(-2) + 
+                (now.getMonth() + 1).toString().padStart(2, '0') + 
+                now.getDate().toString().padStart(2, '0');
+const randomNum = Math.floor(10000 + Math.random() * 90000); // 4 случайные цифры
+
+const orderData = {
+    // Формат будет: MIMI-260113-4821 (ГодМесяцДень-Рандом)
+    order_id: `MIMI-${dateStr}-${randomNum}`, 
+    user: this.form,
+    cart: this.cart,
+    total: this.total,
+    address: this.address,
+    delivery: this.deliv
+};
                 tg.sendData(JSON.stringify(orderData));
                 localStorage.removeItem('mimi_cart');
                 this.cart = [];
