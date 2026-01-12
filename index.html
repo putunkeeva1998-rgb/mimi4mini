@@ -324,7 +324,6 @@
                 this.cart.push({ cartId: Date.now(), name: p.name, price: p.price, size: p.selS, img: p.images[0] });
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
                 this.selP = null;
-                tg.MainButton.setText(`В КОРЗИНЕ ${this.total} ₽`).show();
             },
             removeC(id) { 
                 this.cart = this.cart.filter(i => i.cartId !== id);
