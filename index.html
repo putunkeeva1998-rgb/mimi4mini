@@ -132,7 +132,13 @@
         .input-c { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #eee; font-size: 15px; background: #fdfdfd; font-family: inherit; }
         .order-btn { width: 100%; padding: 18px; background: var(--accent); color: #fff; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; margin-top: 20px; box-shadow: 0 5px 15px rgba(255, 133, 162, 0.3); }
         
-        #map { width: 100%; height: 200px; border-radius: 15px; margin-top: 10px; border: 1.5px solid var(--accent); }
+        #map { 
+    width: 100%; 
+    height: 250px; /* Убедитесь, что высота указана в px */
+    border-radius: 15px; 
+    margin-top: 10px; 
+    border: 1.5px solid var(--accent); 
+}
     </style>
 </head>
 <body>
@@ -214,10 +220,15 @@
                 <div style="margin-top: 25px;">
                     <input class="input-c" v-model="form.name" placeholder="Ваше имя" style="margin-bottom:10px;">
                     <input class="input-c" v-model="form.phone" placeholder="Номер телефона" type="tel" style="margin-bottom:15px;">
-                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
-                        <button v-for="d in ['СДЭК', 'Почта', '5post']" @click="deliv = d; vibrate(); initMap()" :class="['cat-tab', deliv === d ? 'active' : '']" style="flex:1;">{{d}}</button>
-                    </div>
-                    <div v-show="deliv">
+                    <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+    <button v-for="d in ['СДЭК', 'Почта', '5post']" 
+        @click="deliv = d; vibrate(); initMap()" 
+        :class="['cat-tab', deliv === d ? 'active' : '']" 
+        style="flex:1;">
+    {{d}} </button>
+</div>
+
+<div v-show="deliv">
     <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
         <span>📍 {{address || 'Укажите адрес на карте'}}</span>
         <button @click="locateMe" style="border:none; background:rgba(255,133,162,0.1); color:var(--accent); font-weight:800; font-size:10px; padding: 5px 10px; border-radius: 8px;">ГДЕ Я?</button>
@@ -291,7 +302,7 @@
                 address: '',
                 map: null,
                 markers: [],
-                user: { first_name: 'Гость', photo: '' },
+                user: { first_name: 'Покупатель', photo: '' },
                 form: { name: '', phone: '' },
                 products: [
                     { id: 1, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Эльза 1023"', price: 1290, images: ['elsa1023.jpg', 'elsa1023(2).jpg'], sizes: ['100','110','120','130','140'], selS: '100', aIdx: 0, desc: 'Детский карнавальный костюм Эльзы из любимого мультика Холодное сердце Frozen. В комплект Эльзы входит платье и шлейф, который крепится на пуговицах, можно легко снять при необходимости. Праздничное новогоднее длинное платье со шлейфом для девочки на День рождения, утренник и выпускной бал в садик. На рост от 98 см. Нарядное детское платье принцессы имеет красивую голубую пышную юбку с хлопковым подкладом из мягкого фатина с серебристыми блестками и белыми снежинками, а также милые фатиновые рукава фонарики. Верх расшит блестящими синими пайетками. Сценический костюм королевы Elza прекрасно подойдет ребенку для образа метелицы, Снежной королевы или снежинки, зимы и снегурочки, волшебницы феи Анны из сказки. Сказочный дизайн из любимого мультфильма детей и яркие детали маскарадной одежды позволят вашей дочке воплотить самые заветные мечты в реальность. Независимо от того, предстоит ли рождественское выступление в детском саду на елке нг, Новый год, фотосессия или праздник с семьей на 8 марта, голубое бальное платье из мультика Frozen 2 disney дисней подарит ей незабываемые моменты и оставит яркие воспоминания о волшебных временах детства.' },
@@ -338,80 +349,36 @@
                 this.cart = this.cart.filter(i => i.cartId !== id);
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
             },
-            iinitMap() {
-                // Ждем, пока Vue покажет блок #map
-                this.$nextTick(() => {
-                    setTimeout(() => {
-                        // Если карта уже была создана, удаляем её
-                        if (this.map) { 
-                            this.map.remove(); 
-                            this.map = null; 
-                        }
-
-                        // Инициализируем карту
-                        this.map = DG.map('map', { 
-                            center: [55.75, 37.61], 
-                            zoom: 11, 
-                            zoomControl: false 
-                        });
-
-                        // КРИТИЧНО: принудительно обновляем размер карты
-                        this.map.invalidateSize();
-
-                        // Поиск точек при каждом перемещении карты
-                        this.map.on('moveend', () => { this.searchPVZ(); });
-
-                        // Ручной выбор адреса кликом
-                        this.map.on('click', (e) => {
-                            this.vibrate();
-                            this.getAddress(e.latlng.lat, e.latlng.lng);
-                        });
-
-                        // Сразу ищем ПВЗ и определяем где пользователь
-                        this.searchPVZ();
-                        this.locateMe();
-                    }, 200); // Небольшая задержка для стабильности
-                });
+            initMap() {
+                setTimeout(() => {
+                    if (this.map) { this.map.remove(); this.map = null; }
+                    this.map = DG.map('map', { 
+                        center: [55.75, 37.61], 
+                        zoom: 11, 
+                        zoomControl: false 
+                    });
+                    this.map.on('moveend', () => { this.searchPVZ(); });
+                    this.searchPVZ();
+                    this.locateMe();
+                }, 100);
             },
-
-            locateMe() {
-                this.vibrate();
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
-                        if (this.map) {
-                            this.map.setView([lat, lon], 14);
-                            // Для Почты сразу определяем адрес дома, если маркеры не нужны
-                            if (this.deliv === 'Почта') this.getAddress(lat, lon);
-                        }
-                    }, (err) => console.log("Гео отказано"));
-                }
-            },
-
             searchPVZ() {
-                if (!this.map) return;
+                if (!this.map || !this.deliv) return;
                 const center = this.map.getCenter();
                 const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-                
-                // Формируем запрос: СДЭК, 5post или Почта России
-                let query = this.deliv;
-                if (query === 'Почта') query = 'Почта России';
+                let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
 
                 fetch(`https://catalog.api.2gis.com/3.0/items?q=${query}&location=${center.lng},${center.lat}&radius=5000&key=${key}`)
                 .then(r => r.json())
                 .then(d => {
-                    // Чистим старые маркеры
                     this.markers.forEach(m => m.remove());
                     this.markers = [];
-
-                    if (d.result?.items) {
+                    if (d.result && d.result.items) {
                         d.result.items.forEach(item => {
                             if (item.point) {
                                 const m = DG.marker([item.point.lat, item.point.lon]).addTo(this.map);
                                 m.on('click', () => {
                                     this.vibrate();
-                                    // Сохраняем выбранный ПВЗ
                                     this.address = `${this.deliv}: ${item.address_name || item.name}`;
                                     DG.popup().setLatLng([item.point.lat, item.point.lon])
                                       .setContent(`<b>${item.name}</b><br>${item.address_name || ''}`)
@@ -422,36 +389,48 @@
                         });
                     }
                 });
+            }, // Здесь теперь все скобки закрыты правильно
+            locateMe() {
+                this.vibrate();
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        const lat = pos.coords.latitude;
+                        const lon = pos.coords.longitude;
+                        if (this.map) {
+                            this.map.setView([lat, lon], 15);
+                            this.getAddress(lat, lon);
+                        }
+                    }, (err) => {
+                        alert("Пожалуйста, разрешите доступ к местоположению");
+                    });
+                }
             },
-
             getAddress(lat, lng) {
                 const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
                 fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address&key=${key}`)
                 .then(r => r.json())
                 .then(d => {
-                    if (d.result?.items?.length > 0) {
-                        this.address = d.result.items[0].address_name;
+                    if (d.result && d.result.items && d.result.items.length > 0) {
+                        this.address = d.result.items[0].address_name || d.result.items[0].name;
                     }
                 });
             },
             send() {
                 this.vibrate();
                 const now = new Date();
-const dateStr = now.getDate().toString().padStart(2, '0') + 
-                (now.getMonth() + 1).toString().padStart(2, '0') + 
-                now.getFullYear().toString().slice(-2);
+                const dateStr = now.getDate().toString().padStart(2, '0') + 
+                                (now.getMonth() + 1).toString().padStart(2, '0') + 
+                                now.getFullYear().toString().slice(-2);
+                const randomNum = Math.floor(10000 + Math.random() * 90000); 
 
-const randomNum = Math.floor(10000 + Math.random() * 90000); 
-
-const orderData = {
-    // ВАЖНО: используй обратные кавычки ` (клавиша под Esc)
-    order_id: `${dateStr}-${randomNum}`, 
-    user: this.form,
-    cart: this.cart,
-    total: this.total,
-    address: this.address,
-    delivery: this.deliv
-};
+                const orderData = {
+                    order_id: `${dateStr}-${randomNum}`, 
+                    user: this.form,
+                    cart: this.cart,
+                    total: this.total,
+                    address: this.address,
+                    delivery: this.deliv
+                };
                 tg.sendData(JSON.stringify(orderData));
                 localStorage.removeItem('mimi_cart');
                 this.cart = [];
