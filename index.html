@@ -363,60 +363,54 @@
                 }, 100);
             },
             searchPVZ() {
-                if (!this.map || !this.deliv) return;
-                const center = this.map.getCenter();
-                const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-                let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
+            if (!this.map || !this.deliv) return;
+            const center = this.map.getCenter();
+            const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+            
+            // Если выбрана Почта — ищем "Почта России", иначе берем СДЭК или 5post как есть
+            let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
 
-                fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center.lng},${center.lat}&radius=10000&key=${key}`)
-                .then(r => r.json())
-                .then(d => {
-                    this.markers.forEach(m => m.remove());
-                    this.markers = [];
-                    if (d.result && d.result.items) {
-                        d.result.items.forEach(item => {
-                            if (item.point) {
-                                const m = DG.marker([item.point.lat, item.point.lon]).addTo(this.map);
-                                m.on('click', () => {
-                                    this.vibrate();
-                                    const selectedAddress = `${this.deliv}: ${item.address_name || item.name}`;
-                                    this.address = selectedAddress;
-                                    console.log("Адрес успешно выбран:", this.address);
-                                    DG.popup().setLatLng([item.point.lat, item.point.lon])
-                                      .setContent(`<b>${item.name}</b><br>${item.address_name || ''}<br><br><span style="color:red">ВЫБРАНО</span>`)
-                                      .openOn(this.map);
-                                });
-                                this.markers.push(m);
-                            }
-                        });
-                    }
-                });
-            }, // Здесь теперь все скобки закрыты правильно
-            locateMe() {
-                this.vibrate();
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition((pos) => {
-                        const lat = pos.coords.latitude;
-                        const lon = pos.coords.longitude;
-                        if (this.map) {
-                            this.map.setView([lat, lon], 15);
-                            this.getAddress(lat, lon);
+            fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center.lng},${center.lat}&radius=5000&key=${key}`)
+            .then(r => r.json())
+            .then(d => {
+                // Очищаем старые маркеры перед отрисовкой новых
+                this.markers.forEach(m => m.remove());
+                this.markers = [];
+
+                if (d.result && d.result.items) {
+                    d.result.items.forEach(item => {
+                        if (item.point) {
+                            const m = DG.marker([item.point.lat, item.point.lon]).addTo(this.map);
+                            m.on('click', () => {
+                                this.vibrate();
+                                // Записываем адрес ПВЗ в форму
+                                this.address = `${this.deliv}: ${item.address_name || item.name}`;
+                                
+                                // Открываем облачко с названием ПВЗ
+                                DG.popup().setLatLng([item.point.lat, item.point.lon])
+                                  .setContent(`<b>${item.name}</b><br>${item.address_name || ''}`)
+                                  .openOn(this.map);
+                            });
+                            this.markers.push(m);
                         }
-                    }, (err) => {
-                        alert("Пожалуйста, разрешите доступ к местоположению");
                     });
                 }
-            },
-            getAddress(lat, lng) {
-                const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-                fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address&key=${key}`)
-                .then(r => r.json())
-                .then(d => {
-                    if (d.result && d.result.items && d.result.items.length > 0) {
-                        this.address = d.result.items[0].address_name || d.result.items[0].name;
-                    }
-                });
-            },
+            })
+            .catch(e => console.error("Ошибка поиска ПВЗ:", e));
+        },
+
+        getAddress(lat, lng) {
+            const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+            fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address&key=${key}`)
+            .then(r => r.json())
+            .then(d => {
+                if (d.result && d.result.items && d.result.items.length > 0) {
+                    // Сохраняем адрес дома, если кликнули не на ПВЗ
+                    this.address = d.result.items[0].address_name || d.result.items[0].name;
+                }
+            })
+            .catch(e => console.error("Ошибка получения адреса:", e));
+        },
             send() {
                 this.vibrate();
                 const now = new Date();
