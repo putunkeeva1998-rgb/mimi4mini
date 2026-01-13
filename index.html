@@ -338,30 +338,40 @@
                 this.cart = this.cart.filter(i => i.cartId !== id);
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
             },
-            initMap() {
-                setTimeout(() => {
-                    // Очищаем старую карту перед созданием новой
-                    if (this.map) { this.map.remove(); this.map = null; }
+            iinitMap() {
+                // Ждем, пока Vue покажет блок #map
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        // Если карта уже была создана, удаляем её
+                        if (this.map) { 
+                            this.map.remove(); 
+                            this.map = null; 
+                        }
 
-                    this.map = DG.map('map', { 
-                        center: [55.75, 37.61], 
-                        zoom: 11, 
-                        zoomControl: false 
-                    });
+                        // Инициализируем карту
+                        this.map = DG.map('map', { 
+                            center: [55.75, 37.61], 
+                            zoom: 11, 
+                            zoomControl: false 
+                        });
 
-                    // Поиск точек при каждом перемещении карты
-                    this.map.on('moveend', () => { this.searchPVZ(); });
+                        // КРИТИЧНО: принудительно обновляем размер карты
+                        this.map.invalidateSize();
 
-                    // Ручной выбор адреса кликом (если нет нужного ПВЗ)
-                    this.map.on('click', (e) => {
-                        this.vibrate();
-                        this.getAddress(e.latlng.lat, e.latlng.lng);
-                    });
+                        // Поиск точек при каждом перемещении карты
+                        this.map.on('moveend', () => { this.searchPVZ(); });
 
-                    // Сразу ищем ПВЗ и определяем где пользователь
-                    this.searchPVZ();
-                    this.locateMe();
-                }, 150);
+                        // Ручной выбор адреса кликом
+                        this.map.on('click', (e) => {
+                            this.vibrate();
+                            this.getAddress(e.latlng.lat, e.latlng.lng);
+                        });
+
+                        // Сразу ищем ПВЗ и определяем где пользователь
+                        this.searchPVZ();
+                        this.locateMe();
+                    }, 200); // Небольшая задержка для стабильности
+                });
             },
 
             locateMe() {
