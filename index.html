@@ -350,54 +350,69 @@
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
             },
             initMap() {
-                setTimeout(() => {
-                    if (this.map) { this.map.remove(); this.map = null; }
-                    this.map = DG.map('map', { 
-                        center: [55.75, 37.61], 
-                        zoom: 14, 
-                        zoomControl: false 
-                    });
-                    this.map.on('moveend', () => { this.searchPVZ(); });
-                    this.searchPVZ();
-                    this.locateMe();
-                }, 100);
+                // Используем $nextTick, чтобы Vue успел отобразить блок #map
+                this.$nextTick(() => {
+                    setTimeout(() => {
+                        if (this.map) { this.map.remove(); this.map = null; }
+                        
+                        this.map = DG.map('map', { 
+                            center: [55.75, 37.61], 
+                            zoom: 14, 
+                            zoomControl: false 
+                        });
+
+                        // КРИТИЧНО: Принудительно обновляем размер карты, чтобы она увидела свои границы
+                        this.map.invalidateSize();
+
+                        // Поиск ПВЗ при перемещении карты
+                        this.map.on('moveend', () => { this.searchPVZ(); });
+
+                        // Клик по карте для получения адреса (если нет ПВЗ рядом)
+                        this.map.on('click', (e) => {
+                            this.vibrate();
+                            this.getAddress(e.latlng.lat, e.latlng.lng);
+                        });
+
+                        this.searchPVZ();
+                        this.locateMe();
+                    }, 200); // Небольшая задержка для стабильности
+                });
             },
+
             searchPVZ() {
-            if (!this.map || !this.deliv) return;
-            const center = this.map.getCenter();
-            const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-            
-            // Если выбрана Почта — ищем "Почта России", иначе берем СДЭК или 5post как есть
-            let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
+                if (!this.map || !this.deliv) return;
+                const center = this.map.getCenter();
+                const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+                
+                let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
 
-            fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center.lng},${center.lat}&radius=5000&key=${key}`)
-            .then(r => r.json())
-            .then(d => {
-                // Очищаем старые маркеры перед отрисовкой новых
-                this.markers.forEach(m => m.remove());
-                this.markers = [];
+                // Используем обратные кавычки для сборки URL
+                fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center.lng},${center.lat}&radius=5000&key=${key}`)
+                .then(r => r.json())
+                .then(d => {
+                    this.markers.forEach(m => m.remove());
+                    this.markers = [];
 
-                if (d.result && d.result.items) {
-                    d.result.items.forEach(item => {
-                        if (item.point) {
-                            const m = DG.marker([item.point.lat, item.point.lon]).addTo(this.map);
-                            m.on('click', () => {
-                                this.vibrate();
-                                // Записываем адрес ПВЗ в форму
-                                this.address = `${this.deliv}: ${item.address_name || item.name}`;
-                                
-                                // Открываем облачко с названием ПВЗ
-                                DG.popup().setLatLng([item.point.lat, item.point.lon])
-                                  .setContent(`<b>${item.name}</b><br>${item.address_name || ''}`)
-                                  .openOn(this.map);
-                            });
-                            this.markers.push(m);
-                        }
-                    });
-                }
-            })
-            .catch(e => console.error("Ошибка поиска ПВЗ:", e));
-        },
+                    if (d.result && d.result.items) {
+                        d.result.items.forEach(item => {
+                            if (item.point) {
+                                const m = DG.marker([item.point.lat, item.point.lon]).addTo(this.map);
+                                m.on('click', () => {
+                                    this.vibrate();
+                                    this.address = `${this.deliv}: ${item.address_name || item.name}`;
+                                    DG.popup().setLatLng([item.point.lat, item.point.lon])
+                                      .setContent(`<b>${item.name}</b><br>${item.address_name || ''}`)
+                                      .openOn(this.map);
+                                });
+                                this.markers.push(m);
+                            }
+                        });
+                    }
+                })
+                .catch(e => console.error("Ошибка поиска ПВЗ:", e));
+            },
+
+
 
         getAddress(lat, lng) {
             const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
