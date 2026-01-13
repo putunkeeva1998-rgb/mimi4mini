@@ -368,7 +368,7 @@
                 const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
                 let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
 
-                fetch(`https://catalog.api.2gis.com/3.0/items?q=${query}&location=${center.lng},${center.lat}&radius=5000&key=${key}`)
+                fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center.lng},${center.lat}&radius=10000&key=${key}`)
                 .then(r => r.json())
                 .then(d => {
                     this.markers.forEach(m => m.remove());
