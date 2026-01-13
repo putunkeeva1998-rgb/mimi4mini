@@ -357,7 +357,7 @@
                         
                         this.map = DG.map('map', { 
                             center: [55.75, 37.61], 
-                            zoom: 14, 
+                            zoom: 16, 
                             zoomControl: false 
                         });
 
@@ -426,6 +426,36 @@
             })
             .catch(e => console.error("Ошибка получения адреса:", e));
         },
+        locateMe() {
+    if (!navigator.geolocation || !this.map) return;
+    
+    // Показываем пользователю, что поиск начался
+    console.log("Определяю местоположение...");
+    
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            const lat = pos.coords.latitude;
+            const lon = pos.coords.longitude;
+            
+            // Центрируем карту на пользователе
+            this.map.setView([lat, lon], 16);
+            
+            // Сразу ищем адрес в этой точке
+            this.getAddress(lat, lon);
+            
+            // Сразу ищем ближайшие ПВЗ
+            this.searchPVZ();
+            
+            this.vibrate();
+        },
+        (err) => {
+            console.error("Ошибка геолокации:", err);
+            // Если пользователь запретил доступ, можно вывести подсказку
+            alert("Пожалуйста, разрешите доступ к местоположению в настройках.");
+        },
+        { enableHighAccuracy: true, timeout: 5000 }
+    );
+},
             send() {
                 this.vibrate();
                 const now = new Date();
