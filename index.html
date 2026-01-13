@@ -354,7 +354,7 @@
                     if (this.map) { this.map.remove(); this.map = null; }
                     this.map = DG.map('map', { 
                         center: [55.75, 37.61], 
-                        zoom: 11, 
+                        zoom: 14, 
                         zoomControl: false 
                     });
                     this.map.on('moveend', () => { this.searchPVZ(); });
@@ -379,9 +379,11 @@
                                 const m = DG.marker([item.point.lat, item.point.lon]).addTo(this.map);
                                 m.on('click', () => {
                                     this.vibrate();
-                                    this.address = `${this.deliv}: ${item.address_name || item.name}`;
+                                    const selectedAddress = `${this.deliv}: ${item.address_name || item.name}`;
+                                    this.address = selectedAddress;
+                                    console.log("Адрес успешно выбран:", this.address);
                                     DG.popup().setLatLng([item.point.lat, item.point.lon])
-                                      .setContent(`<b>${item.name}</b><br>${item.address_name || ''}`)
+                                      .setContent(`<b>${item.name}</b><br>${item.address_name || ''}<br><br><span style="color:red">ВЫБРАНО</span>`)
                                       .openOn(this.map);
                                 });
                                 this.markers.push(m);
