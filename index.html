@@ -7,7 +7,7 @@
     <title>mimi 4 mini</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://maps.api.2gis.ru/2.0/loader.js?pkg=full&apikey=cab82c94-e619-42eb-9814-3361712feaf0"></script>
+    <script src="https://mapgl.2gis.com/api/js/v1"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
     
     <style>
@@ -350,111 +350,85 @@
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
             },
             initMap() {
-                // Используем $nextTick, чтобы Vue успел отобразить блок #map
-                this.$nextTick(() => {
-                    setTimeout(() => {
-                        if (this.map) { this.map.remove(); this.map = null; }
-                        
-                        this.map = DG.map('map', { 
-                            center: [55.75, 37.61], 
-                            zoom: 16, 
-                            zoomControl: false 
-                        });
+    this.$nextTick(() => {
+        setTimeout(() => {
+            // Удаляем старую карту, если она есть
+            if (this.map) { 
+                this.map.destroy(); 
+                this.map = null; 
+            }
 
-                        // КРИТИЧНО: Принудительно обновляем размер карты, чтобы она увидела свои границы
-                        this.map.invalidateSize();
+            // Инициализация MapGL (v3)
+            this.map = new mapgl.Map('map', {
+                center: [37.6175, 55.7558], // Москва [lng, lat]
+                zoom: 13,
+                key: 'cab82c94-e619-42eb-9814-3361712feaf0', // Ваш ключ
+            });
 
-                        // Поиск ПВЗ при перемещении карты
-                        this.map.on('moveend', () => { this.searchPVZ(); });
+            // Поиск при движении карты
+            this.map.on('moveend', () => { this.searchPVZ(); });
 
-                        // Клик по карте для получения адреса (если нет ПВЗ рядом)
-                        this.map.on('click', (e) => {
-                            this.vibrate();
-                            this.getAddress(e.latlng.lat, e.latlng.lng);
-                        });
+            // Клик для получения адреса
+            this.map.on('click', (e) => {
+                this.vibrate();
+                // MapGL возвращает координаты в e.lngLat
+                this.getAddress(e.lngLat[1], e.lngLat[0]); 
+            });
 
-                        this.searchPVZ();
-                        this.locateMe();
-                    }, 200); // Небольшая задержка для стабильности
-                });
-            },
+            this.locateMe();
+        }, 200);
+    });
+},
 
-            searchPVZ() {
-                if (!this.map || !this.deliv) return;
-                const center = this.map.getCenter();
-                const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-                
-                let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
+searchPVZ() {
+    if (!this.map || !this.deliv) return;
+    const center = this.map.getCenter(); // Вернет [lng, lat]
+    const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+    let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
 
-                // Используем обратные кавычки для сборки URL
-                fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center.lng},${center.lat}&radius=5000&key=${key}`)
-                .then(r => r.json())
-                .then(d => {
-                    this.markers.forEach(m => m.remove());
-                    this.markers = [];
+    // Используем Places API 3.0
+    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center[0]},${center[1]}&radius=5000&key=${key}`)
+    .then(r => r.json())
+    .then(d => {
+        // Очистка старых маркеров
+        this.markers.forEach(m => m.destroy());
+        this.markers = [];
 
-                    if (d.result && d.result.items) {
-                        d.result.items.forEach(item => {
-                            if (item.point) {
-                                const m = DG.marker([item.point.lat, item.point.lon]).addTo(this.map);
-                                m.on('click', () => {
-                                    this.vibrate();
-                                    this.address = `${this.deliv}: ${item.address_name || item.name}`;
-                                    DG.popup().setLatLng([item.point.lat, item.point.lon])
-                                      .setContent(`<b>${item.name}</b><br>${item.address_name || ''}`)
-                                      .openOn(this.map);
-                                });
-                                this.markers.push(m);
-                            }
-                        });
-                    }
-                })
-                .catch(e => console.error("Ошибка поиска ПВЗ:", e));
-            },
-
-
-
-        getAddress(lat, lng) {
-            const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-            fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lng}&fields=items.address&key=${key}`)
-            .then(r => r.json())
-            .then(d => {
-                if (d.result && d.result.items && d.result.items.length > 0) {
-                    // Сохраняем адрес дома, если кликнули не на ПВЗ
-                    this.address = d.result.items[0].address_name || d.result.items[0].name;
+        if (d.result && d.result.items) {
+            d.result.items.forEach(item => {
+                if (item.point) {
+                    // Создание маркера MapGL
+                    const m = new mapgl.Marker(this.map, {
+                        coordinates: [item.point.lon, item.point.lat],
+                    });
+                    
+                    m.on('click', () => {
+                        this.vibrate();
+                        this.address = `${this.deliv}: ${item.address_name || item.name}`;
+                    });
+                    
+                    this.markers.push(m);
                 }
-            })
-            .catch(e => console.error("Ошибка получения адреса:", e));
-        },
-        locateMe() {
+            });
+        }
+    });
+},
+
+locateMe() {
     if (!navigator.geolocation || !this.map) return;
     
-    // Показываем пользователю, что поиск начался
-    console.log("Определяю местоположение...");
-    
-    navigator.geolocation.getCurrentPosition(
-        (pos) => {
-            const lat = pos.coords.latitude;
-            const lon = pos.coords.longitude;
-            
-            // Центрируем карту на пользователе
-            this.map.setView([lat, lon], 16);
-            
-            // Сразу ищем адрес в этой точке
-            this.getAddress(lat, lon);
-            
-            // Сразу ищем ближайшие ПВЗ
-            this.searchPVZ();
-            
-            this.vibrate();
-        },
-        (err) => {
-            console.error("Ошибка геолокации:", err);
-            // Если пользователь запретил доступ, можно вывести подсказку
-            alert("Пожалуйста, разрешите доступ к местоположению в настройках.");
-        },
-        { enableHighAccuracy: true, timeout: 5000 }
-    );
+    navigator.geolocation.getCurrentPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        
+        // Перелет к пользователю в MapGL
+        this.map.setCenter([lon, lat]);
+        this.map.setZoom(16);
+        
+        this.getAddress(lat, lon);
+        this.searchPVZ();
+        this.vibrate();
+    }, null, { enableHighAccuracy: true });
 },
             send() {
                 this.vibrate();
