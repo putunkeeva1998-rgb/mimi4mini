@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -11,8 +12,8 @@
     
     <style>
         :root { 
-            --accent: #ff85a2; 
-            --bg: #fff5f7; 
+            --accent: #ff85a2; /* Насыщенный розовый */
+            --bg: #fff5f7; /* Нежно-розовый фон */
             --card-bg: #ffffff;
             --dark: #2d2d2d; 
             --gray: #a0a0a0; 
@@ -25,11 +26,12 @@
         body { 
             margin: 0; 
             background: var(--bg); 
-            font-family: 'Montserrat', sans-serif; 
+            font-family: 'Montserrat', -apple-system, sans-serif; 
             color: var(--dark); 
             overflow-x: hidden; 
         }
         
+        /* ХЕДЕР */
         .header { 
             background: #fff; 
             padding: 20px 15px; 
@@ -40,9 +42,17 @@
             z-index: 100; 
         }
 
-        .brand-name { font-size: 22px; margin: 0; font-weight: 800; letter-spacing: -0.5px; }
+        .brand-name { 
+            font-size: 22px; 
+            margin: 0; 
+            font-weight: 800; 
+            letter-spacing: -0.5px; 
+            color: var(--dark);
+        }
+
         .container { padding: 15px; padding-bottom: 110px; }
 
+        /* КАТЕГОРИИ */
         .cat-row { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
         .cat-tab { 
             padding: 10px 20px; 
@@ -57,6 +67,7 @@
         }
         .cat-tab.active { background: var(--accent); color: #fff; }
 
+        /* СЕТКА ТОВАРОВ */
         .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         .card { 
             background: var(--card-bg); 
@@ -69,6 +80,7 @@
             box-shadow: 0 4px 15px rgba(255, 133, 162, 0.1); 
         }
         
+        /* СЛАЙДЕР */
         .slider-wrapper { position: relative; width: 100%; aspect-ratio: 3/4; overflow: hidden; background: #fdfdfd; }
         .slider-inner { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; height: 100%; }
         .slider-inner::-webkit-scrollbar { display: none; }
@@ -77,6 +89,7 @@
         .dots { position: absolute; bottom: 8px; width: 100%; text-align: center; pointer-events: none; }
         .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin: 0 3px; transition: 0.3s; }
 
+        /* СЕРДЦЕ */
         .fav-heart { 
             position: absolute; top: 10px; right: 10px; z-index: 10; 
             background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(8px); 
@@ -90,6 +103,7 @@
         .card-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; height: 30px; overflow: hidden; line-height: 1.2; }
         .card-price { color: var(--accent); font-weight: 800; font-size: 16px; margin-bottom: 10px; }
         
+        /* РАЗМЕРЫ */
         .size-btns { display: flex; justify-content: center; gap: 4px; margin-bottom: 12px; }
         .s-btn { flex: 1; padding: 8px 0; border: 1px solid #eee; border-radius: 8px; font-size: 11px; font-weight: 800; background: #fff; }
         .s-btn.active { border-color: var(--accent); background: var(--light-pink); color: var(--accent); }
@@ -97,9 +111,10 @@
         .buy-btn { 
             width: 100%; padding: 12px; background: var(--accent); color: #fff; 
             border: none; border-radius: 12px; font-size: 10px; font-weight: 800; 
-            text-transform: uppercase;
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
 
+        /* НАВИГАЦИЯ */
         .bottom-nav { 
             position: fixed; bottom: 0; left: 0; right: 0; background: #fff; 
             display: flex; justify-content: space-around; padding: 10px 0 25px 0; 
@@ -109,13 +124,21 @@
         .nav-item.active { color: var(--accent); }
         .nav-item svg { width: 24px; height: 24px; fill: currentColor; }
 
+        /* МОДАЛКА */
         .modal { position: fixed; inset: 0; background: #fff; z-index: 2000; overflow-y: auto; padding-bottom: 40px; }
-        .close-m { position: fixed; top: 15px; left: 15px; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid #eee; z-index: 2100; display: flex; align-items: center; justify-content: center; }
+        .close-m { position: fixed; top: 15px; left: 15px; width: 40px; height: 40px; border-radius: 50%; background: #fff; border: 1px solid #eee; z-index: 2100; display: flex; align-items: center; justify-content: center; font-size: 20px; }
 
-        .input-c { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #eee; font-size: 15px; background: #fdfdfd; margin-bottom: 10px; }
-        .order-btn { width: 100%; padding: 18px; background: var(--accent); color: #fff; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; margin-top: 20px; }
+        /* ФОРМЫ */
+        .input-c { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #eee; font-size: 15px; background: #fdfdfd; font-family: inherit; }
+        .order-btn { width: 100%; padding: 18px; background: var(--accent); color: #fff; border: none; border-radius: 18px; font-weight: 800; font-size: 16px; margin-top: 20px; box-shadow: 0 5px 15px rgba(255, 133, 162, 0.3); }
         
-        #map { width: 100%; height: 250px; border-radius: 15px; margin-top: 10px; border: 1.5px solid var(--accent); }
+        #map { 
+    width: 100%; 
+    height: 250px; /* Убедитесь, что высота указана в px */
+    border-radius: 15px; 
+    margin-top: 10px; 
+    border: 1.5px solid var(--accent); 
+}
     </style>
 </head>
 <body>
@@ -155,6 +178,31 @@
             </div>
         </div>
 
+        <div v-if="activeTab === 'favs'">
+            <h2 class="brand-name" style="font-size: 18px; margin-bottom: 20px;">Избранное</h2>
+            <div v-if="favItems.length === 0" style="text-align: center; padding: 50px 0; color: var(--gray); font-size: 14px;">Здесь пока пусто ❤️</div>
+            <div class="products-grid">
+                <div v-for="p in favItems" :key="p.id" class="card">
+                    <button class="fav-heart active" @click.stop="toggleFav(p)">
+                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+                    </button>
+                    <div class="slider-wrapper">
+                        <div class="slider-inner" @scroll="e => handleScroll(e, p)">
+                            <img v-for="img in p.images" :src="img">
+                        </div>
+                        <div class="dots">
+                            <span v-for="(img, idx) in p.images" class="dot" :style="{ background: idx === p.aIdx ? 'var(--accent)' : 'rgba(0,0,0,0.1)' }"></span>
+                        </div>
+                    </div>
+                    <div class="card-info">
+                        <div class="card-price">{{p.price}} ₽</div>
+                        <div style="font-size: 10px; color: var(--gray); margin-bottom: 8px; font-weight: 700;">Размер: {{p.selS}}</div>
+                        <button class="buy-btn" @click="addToCart(p)">В корзину</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div v-if="activeTab === 'cart'">
             <h2 class="brand-name" style="font-size: 18px; margin-bottom: 20px;">Корзина</h2>
             <div v-if="cart.length === 0" style="text-align: center; padding: 50px 0; color: var(--gray);">Корзина пуста</div>
@@ -170,41 +218,26 @@
                 </div>
 
                 <div style="margin-top: 25px;">
-                    <input class="input-c" v-model="form.name" placeholder="Ваше имя">
-                    <input class="input-c" v-model="form.phone" placeholder="Номер телефона" type="tel">
-                    
+                    <input class="input-c" v-model="form.name" placeholder="Ваше имя" style="margin-bottom:10px;">
+                    <input class="input-c" v-model="form.phone" placeholder="Номер телефона" type="tel" style="margin-bottom:15px;">
                     <div style="display: flex; gap: 8px; margin-bottom: 15px;">
-                        <button v-for="d in ['СДЭК', 'Почта', '5post']" 
-                            @click="deliv = d; vibrate(); initMap();"
-                            :class="['cat-tab', deliv === d ? 'active' : '']" style="flex:1;">
-                            {{d}}
-                        </button>
-                    </div>
+    <button v-for="d in ['СДЭК', 'Почта', '5post']" 
+        @click="deliv = d; vibrate(); initMap(); searchPVZ()"
+        :class="['cat-tab', deliv === d ? 'active' : '']" 
+        style="flex:1;">
+        {{d}}
+    </button>
+</div>
 
-                    <div v-show="deliv">
-                        <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600;">
-                            📍 {{address || 'Выберите ПВЗ на карте'}}
-                        </div>
-                        <div id="map"></div>
-                    </div>
+<div v-show="deliv">
+    <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
+        <span>📍 {{address || 'Укажите адрес на карте'}}</span>
+        <button @click="locateMe" style="border:none; background:rgba(255,133,162,0.1); color:var(--accent); font-weight:800; font-size:10px; padding: 5px 10px; border-radius: 8px;">ГДЕ Я?</button>
+    </div>
+    <div id="map"></div>
+</div>
                 </div>
                 <button class="order-btn" @click="send" :disabled="!isValid">ОФОРМИТЬ: {{total}} ₽</button>
-            </div>
-        </div>
-
-        <div v-if="activeTab === 'favs'">
-            <h2 class="brand-name" style="font-size: 18px; margin-bottom: 20px;">Избранное</h2>
-            <div v-if="favItems.length === 0" style="text-align: center; padding: 50px 0; color: var(--gray);">Здесь пока пусто ❤️</div>
-            <div class="products-grid">
-                <div v-for="p in favItems" :key="p.id" class="card">
-                    <div class="slider-wrapper">
-                        <img :src="p.images[0]" style="width:100%; height:100%; object-fit:cover;">
-                    </div>
-                    <div class="card-info">
-                        <div class="card-price">{{p.price}} ₽</div>
-                        <button class="buy-btn" @click="addToCart(p)">В корзину</button>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -212,7 +245,8 @@
             <div style="text-align: center; padding: 40px 0;">
                 <img :src="user.photo || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); padding: 3px;">
                 <h2 style="margin-top: 15px;">{{user.first_name}}</h2>
-                <button class="cat-tab" @click="tg.openTelegramLink('https://t.me/optania')" style="margin-top:20px;">Поддержка</button>
+                <p style="font-size: 12px; color: var(--gray); margin-bottom: 25px;">Клиент mimi 4 mini</p>
+                <button class="cat-tab" @click="tg.openTelegramLink('https://t.me/optania')">Написать в поддержку</button>
             </div>
         </div>
     </div>
@@ -269,16 +303,15 @@
                 address: '',
                 map: null,
                 markers: [],
-                selectedPVZ: null,
                 user: { first_name: 'Покупатель', photo: '' },
                 form: { name: '', phone: '' },
                 products: [
-                    { id: 1, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Эльза 1023"', price: 1290, images: ['elsa1023.jpg', 'elsa1023(2).jpg'], sizes: ['100','110','120','130','140'], selS: '100', aIdx: 0, desc: 'Детский карнавальный костюм Эльзы из любимого мультика Холодное сердце. В комплект входит платье и шлейф.' },
-                    { id: 2, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Эльза 0425"', price: 1190, images: ['elsa0425.jpg','elsa0425(2).jpg'], sizes: ['100','110','120','130'], selS: '100', aIdx: 0, desc: 'Платье с Эльзой со шлейфом. Юбка в меру пышная, основа из хлопка.' },
-                    { id: 3, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Принцесса 0922"', price: 1190, images: ['0922(1).jpg','0922(2).jpg'], sizes: ['110','120','130'], selS: '110', aIdx: 0, desc: 'Костюм снежинки, феи или принцессы Эльзы. Шлейф усыпан блестками.' },
-                    { id: 4, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Рапунцель 0825"', price: 1190, images: ['0825(1).jpg','0825(2).jpg'], sizes: ['110','120'], selS: '110', aIdx: 0, desc: 'Праздничное длинное пышное платье с золотистыми блестками.' },
-                    { id: 5, category: 'ПОВСЕДНЕВНЫЕ ПЛАТЬЯ', name: 'Платье "Принцесса"', price: 1890, images: ['pink1.jpg', 'pink2.jpg','pink3.jpg'], sizes: ['98','104','110','122','128','134'], selS: '98', aIdx: 0, desc: 'Нарядное ярко розовое платье с рукавами-фонариками и декором в виде цветов.' },
-                    { id: 6, category: 'ПОВСЕДНЕВНЫЕ ПЛАТЬЯ', name: 'Платье "Принцесса" Белое', price: 1890, images: ['white1.jpg', 'white2.jpg','white3.jpg','white4.jpg'], sizes: ['98','104','110','122','128','134'], selS: '98', aIdx: 0, desc: 'Жаккардовая ткань с цветами, пышная юбка и пояс. Идеально для выпускного.' }
+                    { id: 1, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Эльза 1023"', price: 1290, images: ['elsa1023.jpg', 'elsa1023(2).jpg'], sizes: ['100','110','120','130','140'], selS: '100', aIdx: 0, desc: 'Детский карнавальный костюм Эльзы из любимого мультика Холодное сердце Frozen. В комплект Эльзы входит платье и шлейф, который крепится на пуговицах, можно легко снять при необходимости. Праздничное новогоднее длинное платье со шлейфом для девочки на День рождения, утренник и выпускной бал в садик. На рост от 98 см. Нарядное детское платье принцессы имеет красивую голубую пышную юбку с хлопковым подкладом из мягкого фатина с серебристыми блестками и белыми снежинками, а также милые фатиновые рукава фонарики. Верх расшит блестящими синими пайетками. Сценический костюм королевы Elza прекрасно подойдет ребенку для образа метелицы, Снежной королевы или снежинки, зимы и снегурочки, волшебницы феи Анны из сказки. Сказочный дизайн из любимого мультфильма детей и яркие детали маскарадной одежды позволят вашей дочке воплотить самые заветные мечты в реальность. Независимо от того, предстоит ли рождественское выступление в детском саду на елке нг, Новый год, фотосессия или праздник с семьей на 8 марта, голубое бальное платье из мультика Frozen 2 disney дисней подарит ей незабываемые моменты и оставит яркие воспоминания о волшебных временах детства.' },
+                    { id: 2, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Эльза 0425"', price: 1190, images: ['elsa0425.jpg','elsa0425(2).jpg'], sizes: ['100','110','120','130'], selS: '100', aIdx: 0, desc: 'Платье с Эльзой со шлейфом для девочки на День рождения, утренник в садик и для повседневных игр детей. Нарядное платье принцессы имеет фатиновую юбку (2 слоя фатина, хлопковый подъюбник) с рисунком сказочной феи и звезодчками, а также милые фатиновые рукава фонарики и модный белый воротник. На хлопковом топе изображение Эльзы из мультфильма Холодное сердце, оформленное в сердечко из бусин. Прекрасное платье на девочку в садик. Юбка в меру пышная и основа из хлопка, поэтому платье прекрасно подойдет на каждый день в детский сад. Карнавальный костюм Эльзы прекрасно подойдет для образа Снежной королевы или снежинки, зимы и снегурочки, волшебницы из сказки. Подойдет на рост 98 104, 110, 116. Сказочный дизайн и яркие детали позволят вашей дочке воплотить самые заветные мечты в реальность. Независимо от того, предстоит ли вашей девочке рождественское выступление в детском саду на елке нг, Новый год, фотосессия или праздник с семьей на 8 марта, летнее платье из мультика Frozen 2 disney дисней подарит ей незабываемые моменты и оставит яркие воспоминания о волшебных временах детства.' },
+                    { id: 3, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Принцесса 0922"', price: 1190, images: ['0922(1).jpg','0922(2).jpg'], sizes: ['110','120','130'], selS: '110', aIdx: 0, desc: 'Карнавальный костюм для девочки снежинки, звездочки, феи, волшебницы, принцессы Эльзы Elza Frozen! Шлейф усыпан переливающимися блестками. Розовое нарядное платье для девочки станет отличным нарядом на Новый год, детской елке и утреннике в садике. Радужное платье для девочки блестит и переливается яркими огоньками, поэтому замечательно подойдет на день рождения в стиле Холодное сердце или единорога. Ручная стирка 30 градусов; без отжима.' },
+                    { id: 4, category: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ', name: 'Платье "Рапунцель 0825"', price: 1190, images: ['0825(1).jpg','0825(2).jpg'], sizes: ['110','120'], selS: '110', aIdx: 0, desc: 'Праздничное длинное пышное платье для девочки на День рождения, утренник и осенний бал в садик. Нарядное детское платье принцессы имеет красивую юбку с хлопковым подкладом из мягкого фатина с золотистыми блестками. Карнавальный сценический костюм королевы прекрасно подойдет ребенку для образа королевы, волшебницы, феи из сказки. Сказочный дизайн из любимого мультфильма детей и яркие детали маскарадной одежды позволят вашей дочке воплотить самые заветные мечты в реальность. Независимо от того, предстоит ли рождественское выступление в детском саду на елке нг, Новый год, фотосессия или праздник с семьей на 8 марта, розовое бальное платье из популярного мультика подаритей незабываемые моменты и оставит яркие воспоминания о волшебных временах детства. Ручная стирка без отжима.' },
+                    { id: 5, category: 'ПОВСЕДНЕВНЫЕ ПЛАТЬЯ', name: 'Платье "Принцесса"', price: 1890, images: ['pink1.jpg', 'pink2.jpg','pink3.jpg'], sizes: ['98','104','110','122','128','134'], selS: '98', aIdx: 0, desc: 'Нарядное ярко розовое детское платье Mimi4mini станет настоящим украшением для юной модницы на любом празднике или концетре. Бальное платье для девочки праздничное имеет пышный подъюбник из хлопка с фатином. Винтажный наряд с нежными рукавами-фонариками и трендовым декором в виде цветов создает сказочный образ, а длина по колено делает его удобным для активных игр и танцев детей. Красивое вечернее платьице выполнено торжественного жаккардового материла в цветочек с хлопковой подкладкой, что гарантирует комфорт в течение всего вечера. Оно прекрасно переносит стирки, держит форму и не мнется. При подборе размера 104 на рост от 98; 110 на рост от 104, 116 на рост от 110, 122 на рост от 116 (платье 3 годика 4 года, а также 5, 6, 7 лет), размер 128 на рост 122-128, 134. Элегантное концертное платье на выпускной в садик или на новогоднюю елку для Вашей любимой малышки. Благодаря универсальному дизайну, оно идеально подойдет для выпускного бала в саду, утренник, новый год, Рождество, праздник осени, свадебное торжество свадьбу, образа ретро стиляги, сказочной единорога единорожки, а также осенних прогулок с мамой. Наш модный наряд идеален для создания яркого образа на любой праздник, фотосессию дочки. Прекрасно подойдет на день рождения в стиле Барби Barbie или милой принцессы. Платье для самых красивых и стильных девочек!' },
+                    { id: 6, category: 'ПОВСЕДНЕВНЫЕ ПЛАТЬЯ', name: 'Платье "Принцесса"', price: 1890, images: ['white1.jpg', 'white2.jpg','white3.jpg','white4.jpg'], sizes: ['98','104','110','122','128','134'], selS: '98', aIdx: 0, desc: 'Праздничное платье для девочки идеальный вариант для стильных модниц. Вечерний наряд выполнен из жаккардовой ткани с цветами, пышная юбка имеет хлопковый подклад с фатиновой оборкой, при помощи пояса прекрасно садится по фигуре девочки, поэтому оно не только красивое, но и комфортно и летом, и осенью. Это винтажное белое платье с короткими рукавами фонариками подойдет на летний День рождения. Оно идеально для выпускного бала в садике и новогодние елки, а также для милых фотосессий мамы и дочки. Замечательно подойдет для образа стиляг, 8 марта и осенние утренники в детском саду. Этот элегантный детский наряд создан специально для маленьких леди, которые хотят быть в центре внимания и выглядеть неповторимо на каждом празднике. Нарядное платье для девочки это актуальная идея для подарка ребенку. Желаем вашей принцессе быть всегда яркой и счастливой в нашем празничном платье для модных девочек!' }
                 ],
                 cart: JSON.parse(localStorage.getItem('mimi_cart') || '[]'),
                 favs: JSON.parse(localStorage.getItem('mimi_favs') || '[]')
@@ -287,88 +320,168 @@
         computed: {
             filteredProducts() { return this.products.filter(p => p.category === this.currentCat) },
             favItems() { 
-                return this.favs.map(f => this.products.find(p => p.id === f.id)).filter(p => p);
+                return this.favs.map(f => {
+                    const product = this.products.find(p => p.id === f.id);
+                    return product ? { ...product, selS: f.size } : null;
+                }).filter(p => p !== null);
             },
             total() { return this.cart.reduce((s, i) => s + i.price, 0) },
-            isValid() { return this.form.name.length > 2 && this.form.phone.length > 9 && this.address; }
+            isValid() { return this.form.name.length > 2 && this.form.phone.length > 9 && this.address && this.cart.length > 0; }
         },
         methods: {
             vibrate() { tg.HapticFeedback.impactOccurred('medium'); },
             handleScroll(e, p) { p.aIdx = Math.round(e.target.scrollLeft / e.target.offsetWidth); },
             toggleFav(p) {
-                const idx = this.favs.findIndex(f => f.id === p.id);
-                if (idx > -1) this.favs.splice(idx, 1);
-                else this.favs.push({ id: p.id });
+                this.vibrate();
+                const idx = this.favs.findIndex(f => f.id === p.id && f.size === p.selS);
+                if (idx > -1) { this.favs.splice(idx, 1); } 
+                else { this.favs.push({ id: p.id, size: p.selS }); }
                 localStorage.setItem('mimi_favs', JSON.stringify(this.favs));
             },
-            isFav(p) { return this.favs.some(f => f.id === p.id); },
-            openP(p) { this.selP = p; this.vibrate(); },
+            isFav(p) { return this.favs.some(f => f.id === p.id && f.size === p.selS); },
+            openP(p) { this.vibrate(); this.selP = p; },
             addToCart(p) {
+                this.vibrate();
                 this.cart.push({ cartId: Date.now(), name: p.name, price: p.price, size: p.selS, img: p.images[0] });
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
                 this.selP = null;
-                this.vibrate();
             },
             removeC(id) { 
                 this.cart = this.cart.filter(i => i.cartId !== id);
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
             },
             initMap() {
-                this.$nextTick(() => {
-                    setTimeout(() => {
-                        if (this.map) { this.map.destroy(); this.map = null; }
-                        this.map = new mapgl.Map('map', {
-                            center: [37.6175, 55.7558],
-                            zoom: 13,
-                            key: 'cab82c94-e619-42eb-9814-3361712feaf0',
-                        });
-                        this.map.on('moveend', () => this.searchPVZ());
-                        this.locateMe();
-                    }, 200);
-                });
-            },
-            searchPVZ() {
-                if (!this.map || !this.deliv) return;
-                const center = this.map.getCenter();
-                const queries = { 'СДЭК': 'СДЭК', 'Почта': 'Почта России', '5post': '5Post' };
-                
-                if (this.markers.length) { this.markers.forEach(m => m.destroy()); this.markers = []; }
+    this.$nextTick(() => {
+        setTimeout(() => {
+            if (this.map) { this.map.destroy(); this.map = null; }
+            this.map = new mapgl.Map('map', {
+                center: [37.6175, 55.7558],
+                zoom: 13,
+                key: 'cab82c94-e619-42eb-9814-3361712feaf0',
+            });
+            this.map.on('moveend', () => { this.searchPVZ(); });
+            this.map.on('click', (e) => {
+                this.vibrate();
+                this.getAddress(e.lngLat[1], e.lngLat[0]); 
+            });
+            this.locateMe();
+            this.searchPVZ(); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ (примерно строка 381)
+        }, 200);
+    });
+},
 
-                fetch(`https://catalog.api.2gis.com/3.0/items?q=${queries[this.deliv]}&location=${center[0]},${center[1]}&radius=10000&key=cab82c94-e619-42eb-9814-3361712feaf0`)
-                .then(r => r.json())
-                .then(d => {
-                    if (d.result?.items) {
-                        d.result.items.forEach(item => {
-                            if (item.point) {
-                                const m = new mapgl.Marker(this.map, { coordinates: [item.point.lon, item.point.lat] });
-                                m.on('click', () => {
-                                    this.address = `${this.deliv}: ${item.address_name || item.name}`;
-                                    this.vibrate();
-                                });
-                                this.markers.push(m);
-                            }
-                        });
-                    }
-                });
-            },
-            locateMe() {
-                navigator.geolocation.getCurrentPosition((pos) => {
-                    const coords = [pos.coords.longitude, pos.coords.latitude];
-                    this.map.setCenter(coords);
-                    this.searchPVZ();
-                }, null, { enableHighAccuracy: true });
-            },
+// ... внутри methods: ...
+
+searchPVZ() {
+    // 1. Проверка: если карта не загружена или бренд не выбран — ничего не делаем
+    if (!this.map || !this.deliv) return;
+
+    const center = this.map.getCenter(); // Получаем текущий вид карты
+    const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+    
+    // 2. СТРОГАЯ СОРТИРОВКА: определяем поисковое слово для каждого бренда
+    const queries = {
+        'СДЭК': 'СДЭК ПВЗ',
+        'Почта': 'Почта России отделения',
+        '5post': '5Post пункт выдачи'
+    };
+
+    // 3. ОЧИСТКА: Удаляем абсолютно все старые маркеры перед новым поиском
+    if (this.markers && this.markers.length > 0) {
+        this.markers.forEach(m => m.destroy());
+        this.markers = [];
+    }
+
+    // 4. ЗАПРОС: Ищем только выбранный бренд в радиусе видимости
+    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(queries[this.deliv])}&location=${center[0]},${center[1]}&radius=10000&key=${key}`)
+    .then(r => r.json())
+    .then(d => {
+        if (d.result && d.result.items) {
+            d.result.items.forEach(item => {
+                // Дополнительная проверка на соответствие названия (на всякий случай)
+                if (item.point) {
+                    const m = new mapgl.Marker(this.map, {
+                        coordinates: [item.point.lon, item.point.lat],
+                    });
+                    
+                    m.on('click', () => {
+                        this.vibrate();
+                        // Сохраняем данные конкретного ПВЗ
+                        this.selectedPVZ = item; 
+                        this.address = `${this.deliv}: ${item.address_name || item.name}`;
+                    });
+                    
+                    this.markers.push(m);
+                }
+            });
+        }
+    })
+    .catch(e => console.error("Ошибка поиска:", e));
+},
+
+getAddress(lat, lon) {
+    const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+    // Используем HTTPS и Geocode API
+    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lon}&fields=items.address&key=${key}`)
+    .then(r => r.json())
+    .then(d => {
+        if (d.result && d.result.items && d.result.items.length > 0) {
+            const item = d.result.items[0];
+            // Присваиваем адрес переменной
+            this.address = item.address_name || item.name || "Адрес определен";
+        }
+    })
+    .catch(e => {
+        console.error("Ошибка геокодера:", e);
+        // Если API заблокировано в кабинете 2ГИС, выводим заглушку
+        if (!this.address) this.address = "Кликните на маркер службы";
+    });
+},
+
+locateMe() {
+    if (!navigator.geolocation || !this.map) return;
+    
+    navigator.geolocation.getCurrentPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lon = pos.coords.longitude;
+        
+        this.map.setCenter([lon, lat]);
+        this.map.setZoom(16);
+        
+        // Теперь эта функция будет работать, так как мы ее добавили выше
+        this.getAddress(lat, lon); 
+        this.searchPVZ();
+        this.vibrate();
+    }, null, { enableHighAccuracy: true });
+},
             send() {
-                const orderData = { user: this.form, cart: this.cart, total: this.total, address: this.address, delivery: this.deliv };
+                this.vibrate();
+                const now = new Date();
+                const dateStr = now.getDate().toString().padStart(2, '0') + 
+                                (now.getMonth() + 1).toString().padStart(2, '0') + 
+                                now.getFullYear().toString().slice(-2);
+                const randomNum = Math.floor(10000 + Math.random() * 90000); 
+
+                const orderData = {
+                    order_id: `${dateStr}-${randomNum}`, 
+                    user: this.form,
+                    cart: this.cart,
+                    total: this.total,
+                    address: this.address,
+                    delivery: this.deliv
+                };
                 tg.sendData(JSON.stringify(orderData));
-                tg.close();
+                localStorage.removeItem('mimi_cart');
+                this.cart = [];
+                setTimeout(() => { tg.close(); }, 150);
             }
         },
         mounted() {
             tg.ready(); tg.expand();
             if (tg.initDataUnsafe?.user) {
-                this.user = { first_name: tg.initDataUnsafe.user.first_name, photo: tg.initDataUnsafe.user.photo_url };
-                this.form.name = tg.initDataUnsafe.user.first_name;
+                const u = tg.initDataUnsafe.user;
+                this.user = { first_name: u.first_name, photo: u.photo_url };
+                this.form.name = (u.first_name + ' ' + (u.last_name || '')).trim();
             }
         }
     }).mount('#app');
