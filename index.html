@@ -225,7 +225,8 @@
         @click="deliv = d; vibrate(); initMap(); searchPVZ()" 
         :class="['cat-tab', deliv === d ? 'active' : '']" 
         style="flex:1;">
-    {{d}} </button>
+        {{d}}
+    </button>
 </div>
 
 <div v-show="deliv">
