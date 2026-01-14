@@ -167,8 +167,18 @@
                         </div>
                     </div>
                     <div class="card-info">
-    <div class="card-title">{{p.name}}</div> <div class="card-price">{{p.price}} ₽</div>
-    <div style="font-size: 10px; color: var(--gray); margin-bottom: 8px; font-weight: 700;">Размер: {{p.selS}}</div>
+    <div class="card-title">{{p.name}}</div> 
+    <div class="card-price">{{p.price}} ₽</div>
+    
+    <div class="size-btns">
+        <button v-for="s in p.sizes" 
+                :key="s"
+                @click="p.selS = s; vibrate()" 
+                :class="['s-btn', p.selS === s ? 'active' : '']">
+            {{s}}
+        </button>
+    </div>
+
     <button class="buy-btn" @click="addToCart(p)">В корзину</button>
 </div>
                 </div>
