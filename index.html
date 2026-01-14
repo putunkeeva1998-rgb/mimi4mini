@@ -153,9 +153,9 @@
         <h2 class="brand-name" style="margin-bottom:30px;">mimi 4 mini</h2>
 
         <div style="display: flex; flex-direction: column; gap: 20px;">
-            <button @click="activeInfo = 'about'" style="text-align:left; border:none; background:none; font-size:14px; font-weight:700; color:var(--dark); cursor:pointer;">О НАС</button>
-            <button @click="activeInfo = 'returns'" style="text-align:left; border:none; background:none; font-size:14px; font-weight:700; color:var(--dark); cursor:pointer;">УСЛОВИЯ ВОЗВРАТА</button>
-            <button @click="activeInfo = 'delivery'" style="text-align:left; border:none; background:none; font-size:14px; font-weight:700; color:var(--dark); cursor:pointer;">СРОКИ ДОСТАВКИ</button>
+            <button @click="activeInfo = 'about'" style="text-align:left; border:none; background:none; font-size:14px; font-weight:700; color:var(--dark); cursor:pointer;">О нас</button>
+            <button @click="activeInfo = 'returns'" style="text-align:left; border:none; background:none; font-size:14px; font-weight:700; color:var(--dark); cursor:pointer;">Возврат</button>
+            <button @click="activeInfo = 'delivery'" style="text-align:left; border:none; background:none; font-size:14px; font-weight:700; color:var(--dark); cursor:pointer;">Доставка</button>
         </div>
 
         <div v-if="activeInfo" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#fff; padding:25px; z-index:3002; box-sizing: border-box;">
