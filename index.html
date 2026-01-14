@@ -369,10 +369,15 @@
                 zoom: 13,
                 key: 'cab82c94-e619-42eb-9814-3361712feaf0',
             });
+            let searchTimeout;
             this.map.on('idle', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
                 this.searchPVZ();
-            });
-            this.locateMe();
+            }, 500);
+        });
+
+        this.locateMe();
         }, 200);
     });
 },
