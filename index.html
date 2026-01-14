@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -144,6 +145,43 @@
 <body>
 
 <div id="app">
+    <div v-if="showMenu" @click="showMenu = false" style="position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:3000;"></div>
+
+<div :style="{ transform: showMenu ? 'translateX(0)' : 'translateX(-100%)' }" 
+     style="position:fixed; top:0; left:0; bottom:0; width:280px; background:#fff; z-index:3001; transition: 0.3s ease; padding: 25px; box-shadow: 5px 0 15px rgba(0,0,0,0.1);">
+    
+    <button @click="showMenu = true; vibrate()" style="border:none; background:none;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="black" stroke-width="2">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+    </button>
+    <h2 class="brand-name" style="margin-bottom:30px;">mimi 4 mini</h2>
+
+    <div style="display: flex; flex-direction: column; gap: 20px;">
+        <button @click="activeInfo = 'about'" style="text-align:left; border:none; background:none; font-size:16px; font-weight:700;">О нас</button>
+        <button @click="activeInfo = 'returns'" style="text-align:left; border:none; background:none; font-size:16px; font-weight:700;">Возврат</button>
+        <button @click="activeInfo = 'delivery'" style="text-align:left; border:none; background:none; font-size:16px; font-weight:700;">Доставка</button>
+    </div>
+
+    <div v-if="activeInfo" style="position:absolute; top:0; left:0; width:100%; height:100%; background:#fff; padding:25px; z-index:3002;">
+        <button @click="activeInfo = null" style="float:right; border:none; background:none; font-size:16px;">← Назад</button>
+        
+        <div v-if="activeInfo === 'about'">
+            <h3>О нас</h3>
+            <p>Ваш текст о бренде...</p>
+        </div>
+        <div v-if="activeInfo === 'returns'">
+            <h3>Возврат</h3>
+            <p>Условия возврата...</p>
+        </div>
+        <div v-if="activeInfo === 'delivery'">
+            <h3>Доставка</h3>
+            <p>Информация о доставке...</p>
+        </div>
+    </div>
+</div>
     <div class="header">
         <h1 class="brand-name">mimi 4 mini</h1>
     </div>
@@ -302,6 +340,8 @@
     createApp({
         data() {
             return {
+                showMenu: false,
+                activeInfo: null,
                 activeTab: 'catalog',
                 currentCat: 'КАРНАВАЛЬНЫЕ ПЛАТЬЯ',
                 categories: ['КАРНАВАЛЬНЫЕ ПЛАТЬЯ', 'ПОВСЕДНЕВНЫЕ ПЛАТЬЯ'],
