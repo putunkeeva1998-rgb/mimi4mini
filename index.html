@@ -387,38 +387,48 @@ searchPVZ() {
     const center = this.map.getCenter();
     const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
     
-    // Уточняем названия для лучшего поиска
-    let query = this.deliv === 'Почта' ? 'Почта России' : (this.deliv === '5post' ? '5Post' : this.deliv);
+    // 1. Формируем четкий запрос
+    let query = '';
+    let filterWord = '';
 
-    // ВАЖНО: URL в одну строку без пробелов
+    if (this.deliv === 'СДЭК') {
+        query = 'СДЭК';
+        filterWord = 'сдэк';
+    } else if (this.deliv === 'Почта') {
+        query = 'Почта России отделения'; // Добавили слово отделения
+        filterWord = 'почта';
+    } else if (this.deliv === '5post') {
+        query = '5post';
+        filterWord = '5post';
+    }
+
     fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center[0]},${center[1]}&radius=10000&key=${key}`)
     .then(r => r.json())
     .then(d => {
+        // Очищаем старые маркеры
         this.markers.forEach(m => m.destroy());
         this.markers = [];
 
-        // Проверка на наличие результата (защита от краша)
-        if (d.result && d.result.items && Array.isArray(d.result.items)) {
+        if (d.result && d.result.items) {
             d.result.items.forEach(item => {
-                if (item.point) {
+                // 2. ЖЕСТКАЯ ФИЛЬТРАЦИЯ: проверяем, есть ли название бренда в имени точки
+                const name = item.name.toLowerCase();
+                if (name.includes(filterWord)) {
                     const m = new mapgl.Marker(this.map, {
                         coordinates: [item.point.lon, item.point.lat],
                     });
                     
                     m.on('click', () => {
                         this.vibrate();
-                        // Убираем лишние слова из адреса, если нужно
                         this.address = `${this.deliv}: ${item.address_name || item.name}`;
                     });
                     
                     this.markers.push(m);
                 }
             });
-        } else {
-            console.log("ПВЗ не найдены в радиусе 10км");
         }
     })
-    .catch(e => console.error("Ошибка поиска:", e));
+    .catch(e => console.error("Ошибка поиска ПВЗ:", e));
 },
 
 getAddress(lat, lon) {
