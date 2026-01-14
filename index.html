@@ -179,43 +179,60 @@
         </div>
 
         <div v-if="activeTab === 'favs'">
-            <h2 class="brand-name" style="font-size: 18px; margin-bottom: 20px;">Избранное</h2>
-            <div v-if="favItems.length === 0" style="text-align: center; padding: 50px 0; color: var(--gray); font-size: 14px;">Здесь пока пусто ❤️</div>
-            <div class="products-grid">
-                <div v-for="p in favItems" :key="p.id" class="card">
-                    <button class="fav-heart active" @click.stop="toggleFav(p)">
-                        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                    </button>
-                    <div class="slider-wrapper">
-                        <div class="slider-inner" @scroll="e => handleScroll(e, p)">
-                            <img v-for="img in p.images" :src="img">
-                        </div>
-                        <div class="dots">
-                            <span v-for="(img, idx) in p.images" class="dot" :style="{ background: idx === p.aIdx ? 'var(--accent)' : 'rgba(0,0,0,0.1)' }"></span>
-                        </div>
-                    </div>
-                    <div class="card-info">
-                        <div class="card-price">{{p.price}} ₽</div>
-                        <div style="font-size: 10px; color: var(--gray); margin-bottom: 8px; font-weight: 700;">Размер: {{p.selS}}</div>
-                        <button class="buy-btn" @click="addToCart(p)">В корзину</button>
-                    </div>
+    <h2 class="brand-name" style="font-size: 18px; margin-bottom: 20px;">Избранное</h2>
+    
+    <div v-if="favItems.length === 0" style="text-align: center; padding: 50px 0; color: var(--gray); font-size: 14px;">
+        Здесь пока пусто ❤️
+    </div>
+
+    <div class="products-grid">
+        <div v-for="p in favItems" :key="p.id + p.selS" class="card">
+            
+            <button class="fav-heart active" @click.stop="toggleFav(p)">
+                <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </button>
+
+            <div class="slider-wrapper" @click="openP(p)" style="cursor: pointer;">
+                <div class="slider-inner" @scroll="e => handleScroll(e, p)">
+                    <img v-for="img in p.images" :key="img" :src="img">
+                </div>
+                <div class="dots">
+                    <span v-for="(img, idx) in p.images" :key="idx" class="dot" 
+                          :style="{ background: idx === p.aIdx ? 'var(--accent)' : 'rgba(0,0,0,0.1)' }">
+                    </span>
                 </div>
             </div>
+
+            <div class="card-info">
+                <div class="card-title" style="margin-bottom: 5px; font-size: 11px;">{{p.name}}</div>
+                
+                <div class="card-price">{{p.price}} ₽</div>
+                
+                <div style="font-size: 10px; color: var(--accent); margin-bottom: 8px; font-weight: 800; background: var(--light-pink); display: inline-block; padding: 2px 8px; border-radius: 4px;">
+                    Размер: {{p.selS}}
+                </div>
+
+                <button class="buy-btn" @click="addToCart(p)">В корзину</button>
+            </div>
         </div>
+    </div>
+</div>
 
         <div v-if="activeTab === 'cart'">
-            <h2 class="brand-name" style="font-size: 18px; margin-bottom: 20px;">Корзина</h2>
-            <div v-if="cart.length === 0" style="text-align: center; padding: 50px 0; color: var(--gray);">Корзина пуста</div>
-            <div v-else>
-                <div v-for="item in cart" :key="item.cartId" style="display: flex; gap: 15px; padding: 15px 0; border-bottom: 1px solid #eee;">
-                    <img :src="item.img" style="width: 70px; height: 90px; object-fit: cover; border-radius: 12px;">
-                    <div style="flex: 1;">
-                        <div style="font-size: 13px; font-weight: 700;">{{item.name}}</div>
-                        <div style="font-size: 11px; color: var(--gray);">Размер: {{item.size}}</div>
-                        <div style="color: var(--accent); font-weight: 800; margin-top: 5px;">{{item.price}} ₽</div>
-                    </div>
-                    <button @click="removeC(item.cartId)" style="border:none; background:none; font-size:18px; color: var(--gray);">✕</button>
-                </div>
+    <h2 class="brand-name" style="font-size: 18px; margin-bottom: 20px;">Корзина</h2>
+    <div v-if="cart.length === 0" style="text-align: center; padding: 50px 0; color: var(--gray);">Корзина пуста</div>
+    <div v-else>
+        <div v-for="item in cart" :key="item.cartId" ...>
+    <img :src="item.img" @click="openCartItem(item)" style="cursor: pointer;">
+    
+    <div style="flex: 1;" @click="openCartItem(item)">
+        <div style="font-size: 13px; font-weight: 700;">{{item.name}}</div>
+        <div style="font-size: 11px;">Размер: {{item.size}}</div>
+        ...
+    </div>
+</div>
+        </div>
+</div>
 
                 <div style="margin-top: 25px;">
                     <input class="input-c" v-model="form.name" placeholder="Ваше имя" style="margin-bottom:10px;">
@@ -342,7 +359,7 @@
             openP(p) { this.vibrate(); this.selP = p; },
             addToCart(p) {
                 this.vibrate();
-                this.cart.push({ cartId: Date.now(), name: p.name, price: p.price, size: p.selS, img: p.images[0] });
+                this.cart.push({ cartId: Date.now(), id: p.id, name: p.name, price: p.price, size: p.selS, img: p.images[0] });
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
                 this.selP = null;
             },
@@ -350,6 +367,15 @@
                 this.cart = this.cart.filter(i => i.cartId !== id);
                 localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
             },
+            openCartItem(item) {
+    this.vibrate();
+    // Находим товар в общем списке по ID
+    const originalProduct = this.products.find(p => p.id === item.id);
+    if (originalProduct) {
+        // Открываем модалку с данными этого товара и сохраненным размером
+        this.selP = { ...JSON.parse(JSON.stringify(originalProduct)), selS: item.size };
+    }
+},
             initMap() {
     this.$nextTick(() => {
         setTimeout(() => {
