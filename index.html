@@ -320,11 +320,16 @@
         computed: {
             filteredProducts() { return this.products.filter(p => p.category === this.currentCat) },
             favItems() { 
-                return this.favs.map(f => {
-                    const product = this.products.find(p => p.id === f.id);
-                    return product ? { ...product, selS: f.size } : null;
-                }).filter(p => p !== null);
-            },
+    return this.favs.map(f => {
+        // Находим оригинальный товар из базы по ID
+        const product = this.products.find(p => p.id === f.id);
+        if (product) {
+            // Возвращаем копию товара, сохраняя размер из избранного
+            return { ...product, selS: f.size, aIdx: 0 };
+        }
+        return null;
+    }).filter(p => p !== null);
+},
             total() { return this.cart.reduce((s, i) => s + i.price, 0) },
             isValid() { return this.form.name.length > 2 && this.form.phone.length > 9 && this.address && this.cart.length > 0; }
         },
