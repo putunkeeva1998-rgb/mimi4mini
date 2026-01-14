@@ -68,7 +68,7 @@
         .cat-tab.active { background: var(--accent); color: #fff; }
 
         /* СЕТКА ТОВАРОВ */
-        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .products-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
         .card { 
             background: var(--card-bg); 
             border-radius: 20px; 
@@ -272,16 +272,15 @@
 <button class="order-btn" @click="send" :disabled="!isValid" style="margin-top: 20px;">
     ОФОРМИТЬ: {{total}} ₽
 </button>
-
-        <div v-if="activeTab === 'profile'">
-            <div style="text-align: center; padding: 40px 0;">
-                <img :src="user.photo || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); padding: 3px;">
-                <h2 style="margin-top: 15px;">{{user.first_name}}</h2>
-                <p style="font-size: 12px; color: var(--gray); margin-bottom: 25px;">Клиент mimi 4 mini</p>
-                <button class="cat-tab" @click="tg.openTelegramLink('https://t.me/optania')">Написать в поддержку</button>
-            </div>
-        </div>
+  </div> 
+  <div v-if="activeTab === 'profile'">
+    <div style="text-align: center; padding: 40px 0;">
+        <img :src="user.photo || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" style="width: 100px; height: 100px; border-radius: 50%; border: 3px solid var(--accent); padding: 3px;">
+        <h2 style="margin-top: 15px;">{{user.first_name}}</h2>
+        <p style="font-size: 12px; color: var(--gray); margin-bottom: 25px;">Клиент mimi 4 mini</p>
+        <button class="cat-tab" @click="tg.openTelegramLink('https://t.me/optania')">Написать в поддержку</button>
     </div>
+</div>
 
     <div v-if="selP" class="modal">
         <button class="close-m" @click="selP = null">✕</button>
