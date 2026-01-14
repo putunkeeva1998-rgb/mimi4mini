@@ -139,6 +139,15 @@
     margin-top: 10px; 
     border: 1.5px solid var(--accent); 
 }
+    .map-center-mark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -100%);
+    z-index: 10;
+    pointer-events: none;
+    font-size: 30px;
+}
     </style>
 </head>
 <body>
@@ -247,17 +256,22 @@
                 </button>
             </div>
 
-            <div v-show="deliv">
-                <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
-                    <span>📍 {{address || 'Укажите адрес на карте'}}</span>
-                    <button @click="locateMe" style="border:none; background:rgba(255,133,162,0.1); color:var(--accent); font-weight:800; font-size:10px; padding: 5px 10px; border-radius: 8px;">ГДЕ Я?</button>
-                </div>
-                <div id="map"></div>
-            </div>
-        </div>
-        <button class="order-btn" @click="send" :disabled="!isValid">ОФОРМИТЬ: {{total}} ₽</button>
+            <div v-show="deliv" style="position: relative;">
+    <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600;">
+        📍 {{address || 'Наведите центр карты на нужный дом'}}
     </div>
-</div>
+    
+    <div id="map" style="width: 100%; height: 250px;"></div>
+    
+    <div class="map-center-mark">📍</div>
+    
+    <button @click="confirmAddress" style="width: 100%; margin-top: 10px; padding: 10px; background: var(--dark); color: #fff; border-radius: 10px; font-weight: 700; border: none;">
+        ПОДТВЕРДИТЬ ЭТОТ АДРЕС
+    </button>
+</div> 
+<button class="order-btn" @click="send" :disabled="!isValid" style="margin-top: 20px;">
+    ОФОРМИТЬ: {{total}} ₽
+</button>
 
         <div v-if="activeTab === 'profile'">
             <div style="text-align: center; padding: 40px 0;">
@@ -382,22 +396,35 @@
         setTimeout(() => {
             if (this.map) { this.map.destroy(); this.map = null; }
             this.map = new mapgl.Map('map', {
-                center: [37.6175, 55.7558],
-                zoom: 13,
+                center: [37.6175, 55.7558], // Москва по умолчанию
+                zoom: 15,
                 key: 'cab82c94-e619-42eb-9814-3361712feaf0',
             });
             
-            // Ждем, пока карта загрузится полностью
-            this.map.once('idle', () => {
-                this.locateMe(); // Сначала определяем, где пользователь
-            });
-
-            this.map.on('moveend', () => { this.searchPVZ(); });
-            this.map.on('click', (e) => {
-                this.vibrate();
-                this.getAddress(e.lngLat[1], e.lngLat[0]); 
-            });
+            // Мы больше не ищем адрес при каждом движении! 
+            // Мы просто даем пользователю смотреть на карту (это бесплатно).
         }, 200);
+    });
+},
+
+confirmAddress() {
+    this.vibrate();
+    const center = this.map.getCenter(); // Получаем координаты центра, куда навел пользователь
+    const lat = center[1];
+    const lon = center[0];
+    const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+
+    // ЗАПРОС К API ПРОИСХОДИТ ТОЛЬКО ЗДЕСЬ (один раз на заказ!)
+    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lon}&fields=items.address&key=${key}`)
+    .then(r => r.json())
+    .then(d => {
+        if (d.result && d.result.items.length > 0) {
+            this.address = d.result.items[0].address_name || d.result.items[0].name;
+            tg.MainButton.setText("АДРЕС ПОДТВЕРЖДЕН").show(); // Визуальный фидбек
+        }
+    })
+    .catch(e => {
+        this.address = "Адрес выбран (координаты: " + lat.toFixed(4) + ")";
     });
 },
 
