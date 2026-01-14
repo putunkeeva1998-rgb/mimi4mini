@@ -384,42 +384,35 @@
 
 searchPVZ() {
     if (!this.map || !this.deliv) return;
-    const center = this.map.getCenter();
+    const center = this.map.getCenter(); // Вернет [lon, lat]
     const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
     
-    // 1. Формируем четкий запрос
-    let query = '';
-    let filterWord = '';
+    // Уточняем запросы для 2ГИС
+    const queries = {
+        'СДЭК': 'СДЭК',
+        'Почта': 'Почта России отделения',
+        '5post': '5Post'
+    };
 
-    if (this.deliv === 'СДЭК') {
-        query = 'СДЭК';
-        filterWord = 'сдэк';
-    } else if (this.deliv === 'Почта') {
-        query = 'Почта России отделения'; // Добавили слово отделения
-        filterWord = 'почта';
-    } else if (this.deliv === '5post') {
-        query = '5post';
-        filterWord = '5post';
-    }
-
-    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center[0]},${center[1]}&radius=10000&key=${key}`)
+    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(queries[this.deliv])}&location=${center[0]},${center[1]}&radius=10000&key=${key}`)
     .then(r => r.json())
     .then(d => {
-        // Очищаем старые маркеры
+        // 1. Сначала удаляем абсолютно все старые маркеры
         this.markers.forEach(m => m.destroy());
         this.markers = [];
 
         if (d.result && d.result.items) {
             d.result.items.forEach(item => {
-                // 2. ЖЕСТКАЯ ФИЛЬТРАЦИЯ: проверяем, есть ли название бренда в имени точки
-                const name = item.name.toLowerCase();
-                if (name.includes(filterWord)) {
+                if (item.point) {
+                    // 2. Создаем новый маркер
                     const m = new mapgl.Marker(this.map, {
                         coordinates: [item.point.lon, item.point.lat],
+                        // Можно добавить иконку, чтобы они не сливались с картой
                     });
                     
                     m.on('click', () => {
                         this.vibrate();
+                        // Сохраняем адрес
                         this.address = `${this.deliv}: ${item.address_name || item.name}`;
                     });
                     
@@ -428,8 +421,8 @@ searchPVZ() {
             });
         }
     })
-    .catch(e => console.error("Ошибка поиска ПВЗ:", e));
-},
+    .catch(e => console.error("Ошибка поиска:", e));
+}
 
 getAddress(lat, lon) {
     const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
