@@ -222,17 +222,20 @@
                     <input class="input-c" v-model="form.phone" placeholder="Номер телефона" type="tel" style="margin-bottom:15px;">
                     <div style="display: flex; gap: 8px; margin-bottom: 15px;">
     <button v-for="d in ['СДЭК', 'Почта', '5post']" 
-        @click="deliv = d; vibrate(); initMap(); searchPVZ()"
+        @click="deliv = d; vibrate(); initMap();" 
         :class="['cat-tab', deliv === d ? 'active' : '']" 
         style="flex:1;">
         {{d}}
     </button>
 </div>
 
-<div v-show="deliv">
-    <div style="font-size: 11px; margin-bottom: 5px; font-weight: 600; display: flex; justify-content: space-between; align-items: center;">
-        <span>📍 {{address || 'Укажите адрес на карте'}}</span>
-        <button @click="locateMe" style="border:none; background:rgba(255,133,162,0.1); color:var(--accent); font-weight:800; font-size:10px; padding: 5px 10px; border-radius: 8px;">ГДЕ Я?</button>
+<div v-show="deliv" style="margin-top: 15px;">
+    <button @click="searchPVZ" class="cat-tab" style="width: 100%; margin-bottom: 10px; background: #f0f0f0;">
+        ПОКАЗАТЬ ПУНКТЫ НА КАРТЕ
+    </button>
+    
+    <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom:5px;">
+        📍 {{address || 'Выберите ПВЗ на карте'}}
     </div>
     <div id="map"></div>
 </div>
@@ -346,119 +349,61 @@
             isFav(p) { return this.favs.some(f => f.id === p.id && f.size === p.selS); },
             openP(p) { this.vibrate(); this.selP = p; },
             addToCart(p) {
-                this.vibrate();
-                this.cart.push({ cartId: Date.now(), name: p.name, price: p.price, size: p.selS, img: p.images[0] });
-                localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
-                this.selP = null;
-            },
-            removeC(id) { 
-                this.cart = this.cart.filter(i => i.cartId !== id);
-                localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
-            },
-            initMap() {
-    this.$nextTick(() => {
-        setTimeout(() => {
-            if (this.map) { this.map.destroy(); this.map = null; }
-            this.map = new mapgl.Map('map', {
-                center: [37.6175, 55.7558],
-                zoom: 13,
-                key: 'cab82c94-e619-42eb-9814-3361712feaf0',
-            });
-            this.map.on('moveend', () => { this.searchPVZ(); });
-            this.map.on('click', (e) => {
-                this.vibrate();
-                this.getAddress(e.lngLat[1], e.lngLat[0]); 
-            });
-            this.locateMe();
-            this.searchPVZ(); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ (примерно строка 381)
-        }, 200);
+    this.vibrate();
+    // ОБЯЗАТЕЛЬНО добавляем id, чтобы работало открытие из корзины
+    this.cart.push({ 
+        cartId: Date.now(), 
+        id: p.id, 
+        name: p.name, 
+        price: p.price, 
+        size: p.selS, 
+        img: p.images[0] 
     });
+    localStorage.setItem('mimi_cart', JSON.stringify(this.cart));
+    this.selP = null;
 },
 
-// ... внутри methods: ...
+initMap() {
+    this.$nextTick(() => {
+        if (this.map) this.map.destroy();
+        this.map = new mapgl.Map('map', { 
+            center: [37.6175, 55.7558], 
+            zoom: 12, 
+            key: 'cab82c94-e619-42eb-9814-3361712feaf0' 
+        });
+        // Теперь поиск ПВЗ сработает сам ОДИН раз при загрузке карты
+        this.map.once('idle', () => this.searchPVZ());
+    });
+},
 
 searchPVZ() {
-    // 1. Проверка: если карта не загружена или бренд не выбран — ничего не делаем
-    if (!this.map || !this.deliv) return;
-
-    const center = this.map.getCenter(); // Получаем текущий вид карты
-    const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+    if (!this.deliv || !this.map) return;
     
-    // 2. СТРОГАЯ СОРТИРОВКА: определяем поисковое слово для каждого бренда
-    const queries = {
-        'СДЭК': 'СДЭК ПВЗ',
-        'Почта': 'Почта России отделения',
-        '5post': '5Post пункт выдачи'
-    };
-
-    // 3. ОЧИСТКА: Удаляем абсолютно все старые маркеры перед новым поиском
-    if (this.markers && this.markers.length > 0) {
-        this.markers.forEach(m => m.destroy());
-        this.markers = [];
-    }
-
-    // 4. ЗАПРОС: Ищем только выбранный бренд в радиусе видимости
-    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(queries[this.deliv])}&location=${center[0]},${center[1]}&radius=10000&key=${key}`)
-    .then(r => r.json())
-    .then(d => {
-        if (d.result && d.result.items) {
-            d.result.items.forEach(item => {
-                // Дополнительная проверка на соответствие названия (на всякий случай)
-                if (item.point) {
-                    const m = new mapgl.Marker(this.map, {
-                        coordinates: [item.point.lon, item.point.lat],
-                    });
-                    
-                    m.on('click', () => {
-                        this.vibrate();
-                        // Сохраняем данные конкретного ПВЗ
-                        this.selectedPVZ = item; 
-                        this.address = `${this.deliv}: ${item.address_name || item.name}`;
-                    });
-                    
-                    this.markers.push(m);
-                }
+    const queries = { 'СДЭК': 'СДЭК ПВЗ', 'Почта': 'Почта России', '5post': '5Post' };
+    const center = this.map.getCenter();
+    
+    // Используем только Places API (Поиск). Это расходует только 1 лимит из 1000.
+    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(queries[this.deliv])}&location=${center[0]},${center[1]}&radius=5000&key=cab82c94-e619-42eb-9814-3361712feaf0`)
+    .then(r => r.json()).then(d => {
+        if (d.result?.items) {
+            this.markers.forEach(m => m.destroy());
+            this.markers = d.result.items.map(item => {
+                const m = new mapgl.Marker(this.map, { 
+                    coordinates: [item.point.lon, item.point.lat] 
+                });
+                
+                // БЕРЕМ АДРЕС ИЗ ОТВЕТА ПОИСКА. Геокодер больше не нужен!
+                m.on('click', () => { 
+                    this.address = `${this.deliv}: ${item.address_name || item.name}`; 
+                    this.vibrate(); 
+                });
+                return m;
             });
         }
-    })
-    .catch(e => console.error("Ошибка поиска:", e));
+    }).catch(e => console.error("Ошибка поиска ПВЗ:", e));
 },
+// Метод getAddress и locateMe УДАЛЕНЫ для экономии лимитов
 
-getAddress(lat, lon) {
-    const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-    // Используем HTTPS и Geocode API
-    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lon}&fields=items.address&key=${key}`)
-    .then(r => r.json())
-    .then(d => {
-        if (d.result && d.result.items && d.result.items.length > 0) {
-            const item = d.result.items[0];
-            // Присваиваем адрес переменной
-            this.address = item.address_name || item.name || "Адрес определен";
-        }
-    })
-    .catch(e => {
-        console.error("Ошибка геокодера:", e);
-        // Если API заблокировано в кабинете 2ГИС, выводим заглушку
-        if (!this.address) this.address = "Кликните на маркер службы";
-    });
-},
-
-locateMe() {
-    if (!navigator.geolocation || !this.map) return;
-    
-    navigator.geolocation.getCurrentPosition((pos) => {
-        const lat = pos.coords.latitude;
-        const lon = pos.coords.longitude;
-        
-        this.map.setCenter([lon, lat]);
-        this.map.setZoom(16);
-        
-        // Теперь эта функция будет работать, так как мы ее добавили выше
-        this.getAddress(lat, lon); 
-        this.searchPVZ();
-        this.vibrate();
-    }, null, { enableHighAccuracy: true });
-},
             send() {
                 this.vibrate();
                 const now = new Date();
