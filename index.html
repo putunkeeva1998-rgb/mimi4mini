@@ -222,7 +222,7 @@
                     <input class="input-c" v-model="form.phone" placeholder="Номер телефона" type="tel" style="margin-bottom:15px;">
                     <div style="display: flex; gap: 8px; margin-bottom: 15px;">
     <button v-for="d in ['СДЭК', 'Почта', '5post']" 
-        @click="deliv = d; vibrate(); initMap()" 
+        @click="deliv = d; vibrate(); initMap(); searchPVZ()" 
         :class="['cat-tab', deliv === d ? 'active' : '']" 
         style="flex:1;">
     {{d}} </button>
