@@ -222,7 +222,7 @@
                     <input class="input-c" v-model="form.phone" placeholder="Номер телефона" type="tel" style="margin-bottom:15px;">
                     <div style="display: flex; gap: 8px; margin-bottom: 15px;">
     <button v-for="d in ['СДЭК', 'Почта', '5post']" 
-        @click="deliv = d; vibrate(); initMap(); searchPVZ()" 
+        @click="deliv = d; vibrate(); initMap(); searchPVZ()"
         :class="['cat-tab', deliv === d ? 'active' : '']" 
         style="flex:1;">
         {{d}}
@@ -353,30 +353,19 @@
             initMap() {
     this.$nextTick(() => {
         setTimeout(() => {
-            // Удаляем старую карту, если она есть
-            if (this.map) { 
-                this.map.destroy(); 
-                this.map = null; 
-            }
-
-            // Инициализация MapGL (v3)
+            if (this.map) { this.map.destroy(); this.map = null; }
             this.map = new mapgl.Map('map', {
-                center: [37.6175, 55.7558], // Москва [lng, lat]
+                center: [37.6175, 55.7558],
                 zoom: 13,
-                key: 'cab82c94-e619-42eb-9814-3361712feaf0', // Ваш ключ
+                key: 'cab82c94-e619-42eb-9814-3361712feaf0',
             });
-
-            // Поиск при движении карты
             this.map.on('moveend', () => { this.searchPVZ(); });
-
-            // Клик для получения адреса
             this.map.on('click', (e) => {
                 this.vibrate();
-                // MapGL возвращает координаты в e.lngLat
                 this.getAddress(e.lngLat[1], e.lngLat[0]); 
             });
-
             this.locateMe();
+            this.searchPVZ(); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ (примерно строка 381)
         }, 200);
     });
 },
