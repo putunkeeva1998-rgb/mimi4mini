@@ -401,7 +401,7 @@ searchPVZ() {
     if (this.markers && this.markers.length > 0) {
         this.markers.forEach(m => m.destroy());
         this.markers = [];
-    }
+    },
 
     // 4. ЗАПРОС: Ищем только выбранный бренд в радиусе видимости
     fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(queries[this.deliv])}&location=${center[0]},${center[1]}&radius=10000&key=${key}`)
