@@ -167,13 +167,10 @@
                         </div>
                     </div>
                     <div class="card-info">
-                        <div class="card-title">{{p.name}}</div>
-                        <div class="card-price">{{p.price}} ₽</div>
-                        <div class="size-btns">
-                            <button v-for="s in p.sizes" @click="p.selS = s; vibrate()" :class="['s-btn', p.selS === s ? 'active' : '']">{{s}}</button>
-                        </div>
-                        <button class="buy-btn" @click="addToCart(p)">В корзину</button>
-                    </div>
+    <div class="card-title">{{p.name}}</div> <div class="card-price">{{p.price}} ₽</div>
+    <div style="font-size: 10px; color: var(--gray); margin-bottom: 8px; font-weight: 700;">Размер: {{p.selS}}</div>
+    <button class="buy-btn" @click="addToCart(p)">В корзину</button>
+</div>
                 </div>
             </div>
         </div>
@@ -186,7 +183,7 @@
                     <button class="fav-heart active" @click.stop="toggleFav(p)">
                         <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
                     </button>
-                    <div class="slider-wrapper">
+                    <div class="slider-wrapper" @click="openP(p)" style="cursor: pointer;">
                         <div class="slider-inner" @scroll="e => handleScroll(e, p)">
                             <img v-for="img in p.images" :src="img">
                         </div>
@@ -322,7 +319,10 @@
             favItems() { 
                 return this.favs.map(f => {
                     const product = this.products.find(p => p.id === f.id);
-                    return product ? { ...product, selS: f.size } : null;
+                    if (product) {
+                    return { ...product, selS: f.size, aIdx: 0 };
+                    }
+                    return null;
                 }).filter(p => p !== null);
             },
             total() { return this.cart.reduce((s, i) => s + i.price, 0) },
@@ -359,13 +359,10 @@
                 zoom: 13,
                 key: 'cab82c94-e619-42eb-9814-3361712feaf0',
             });
-            this.map.on('moveend', () => { this.searchPVZ(); });
-            this.map.on('click', (e) => {
-                this.vibrate();
-                this.getAddress(e.lngLat[1], e.lngLat[0]); 
+            this.map.on('idle', () => {
+                this.searchPVZ();
             });
             this.locateMe();
-            this.searchPVZ(); // <-- ДОБАВЬТЕ ЭТУ СТРОКУ (примерно строка 381)
         }, 200);
     });
 },
@@ -450,7 +447,6 @@ locateMe() {
         
         // Теперь эта функция будет работать, так как мы ее добавили выше
         this.getAddress(lat, lon); 
-        this.searchPVZ();
         this.vibrate();
     }, null, { enableHighAccuracy: true });
 },
