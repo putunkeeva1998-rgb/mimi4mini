@@ -380,37 +380,63 @@
     });
 },
 
+// ... внутри methods: ...
+
 searchPVZ() {
     if (!this.map || !this.deliv) return;
-    const center = this.map.getCenter(); // Вернет [lng, lat]
+    const center = this.map.getCenter();
     const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
-    let query = this.deliv === 'Почта' ? 'Почта России' : this.deliv;
+    
+    // Уточняем названия для лучшего поиска
+    let query = this.deliv === 'Почта' ? 'Почта России' : (this.deliv === '5post' ? '5Post' : this.deliv);
 
-    // Используем Places API 3.0
-    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center[0]},${center[1]}&radius=5000&key=${key}`)
+    // ВАЖНО: URL в одну строку без пробелов
+    fetch(`https://catalog.api.2gis.com/3.0/items?q=${encodeURIComponent(query)}&location=${center[0]},${center[1]}&radius=10000&key=${key}`)
     .then(r => r.json())
     .then(d => {
-        // Очистка старых маркеров
         this.markers.forEach(m => m.destroy());
         this.markers = [];
 
-        if (d.result && d.result.items) {
+        // Проверка на наличие результата (защита от краша)
+        if (d.result && d.result.items && Array.isArray(d.result.items)) {
             d.result.items.forEach(item => {
                 if (item.point) {
-                    // Создание маркера MapGL
                     const m = new mapgl.Marker(this.map, {
                         coordinates: [item.point.lon, item.point.lat],
                     });
                     
                     m.on('click', () => {
                         this.vibrate();
+                        // Убираем лишние слова из адреса, если нужно
                         this.address = `${this.deliv}: ${item.address_name || item.name}`;
                     });
                     
                     this.markers.push(m);
                 }
             });
+        } else {
+            console.log("ПВЗ не найдены в радиусе 10км");
         }
+    })
+    .catch(e => console.error("Ошибка поиска:", e));
+},
+
+getAddress(lat, lon) {
+    const key = 'cab82c94-e619-42eb-9814-3361712feaf0';
+    // Используем HTTPS и Geocode API
+    fetch(`https://catalog.api.2gis.com/3.0/items/geocode?lat=${lat}&lon=${lon}&fields=items.address&key=${key}`)
+    .then(r => r.json())
+    .then(d => {
+        if (d.result && d.result.items && d.result.items.length > 0) {
+            const item = d.result.items[0];
+            // Присваиваем адрес переменной
+            this.address = item.address_name || item.name || "Адрес определен";
+        }
+    })
+    .catch(e => {
+        console.error("Ошибка геокодера:", e);
+        // Если API заблокировано в кабинете 2ГИС, выводим заглушку
+        if (!this.address) this.address = "Кликните на маркер службы";
     });
 },
 
@@ -421,11 +447,11 @@ locateMe() {
         const lat = pos.coords.latitude;
         const lon = pos.coords.longitude;
         
-        // Перелет к пользователю в MapGL
         this.map.setCenter([lon, lat]);
         this.map.setZoom(16);
         
-        this.getAddress(lat, lon);
+        // Теперь эта функция будет работать, так как мы ее добавили выше
+        this.getAddress(lat, lon); 
         this.searchPVZ();
         this.vibrate();
     }, null, { enableHighAccuracy: true });
