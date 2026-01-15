@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -412,12 +413,13 @@
                 key: 'cab82c94-e619-42eb-9814-3361712feaf0',
             });
             let searchTimeout;
-            this.map.on('idle', () => {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                this.searchPVZ();
-            }, 500);
-        });
+            this.map.on('click', (e) => {
+    const lat = e.lngLat[1];
+    const lon = e.lngLat[0];
+    this.vibrate();
+    // Вызываем уже готовую у вас функцию получения адреса
+    this.getAddress(lat, lon); 
+});
 
         this.locateMe();
         }, 200);
